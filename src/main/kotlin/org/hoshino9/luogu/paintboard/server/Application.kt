@@ -6,12 +6,14 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
+import io.ktor.response.respondOutputStream
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import java.io.PrintStream
 
 data class PaintRequest(val x: Int, val y: Int, val color: Int)
 
@@ -65,11 +67,13 @@ fun main() {
 
                             board[req.x][req.y] = req.color
                             timer[clientId] = current
-                            call.respond(HttpStatusCode.Accepted)
+                            call.respond(HttpStatusCode.OK)
                         } else throw RequestException("too frequently")
                     } else throw RequestException("invalid client id")
                 } catch (e: Throwable) {
-                    call.respondText(e.message.toString(), status = HttpStatusCode.BadRequest)
+                    call.respondOutputStream(status = HttpStatusCode.BadRequest) {
+                        e.printStackTrace(PrintStream(this))
+                    }
                 }
             }
         }

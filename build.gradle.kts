@@ -1,0 +1,38 @@
+plugins {
+    kotlin("jvm") version "1.3.61"
+    application
+}
+
+application {
+    mainClassName = "org.hoshino9.luogu.paintboard.server.ApplicationKt"
+}
+
+group = "org.example"
+version = "1.0-SNAPSHOT"
+
+val kotlinVersion: String by extra
+val ktorVersion: String by extra
+
+repositories {
+    maven("https://maven.aliyun.com/repository/public")
+    mavenCentral()
+}
+
+dependencies {
+    implementation(kotlin("stdlib-jdk8"))
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("ch.qos.logback:logback-classic:1.2.1")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-gson:$ktorVersion")
+    implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache:$ktorVersion")
+}
+
+tasks {
+    compileKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+}

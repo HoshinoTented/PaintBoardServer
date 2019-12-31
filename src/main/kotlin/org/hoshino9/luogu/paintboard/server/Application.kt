@@ -83,18 +83,18 @@ fun main() {
                             val body = call.receive<String>()
                             val req = Gson().fromJson(body, PaintRequest::class.java)
 
-                            if (req.x !in 0 until 800 || req.y !in 0 until 400) throw RequestException("position out of bounds")
-                            if (req.color !in 0..31) throw RequestException("color out of bounds")
+                            if (req.x !in 0 until 800 || req.y !in 0 until 400) throw RequestException("坐标越界")
+                            if (req.color !in 0..31) throw RequestException("颜色越界")
 
                             board[req.x][req.y] = req.color
                             timer[clientId] = current
-                            call.respondText("{\"status\":200}", status = HttpStatusCode.OK)
+                            call.respondText("{\"status\":200}", contentType = ContentType.Application.Json, status = HttpStatusCode.OK)
 
                             launch {
                                 onPaint(req)
                             }
-                        } else throw RequestException("too frequently")
-                    } else throw RequestException("invalid client id")
+                        } else throw RequestException("操作过于频繁")
+                    } else throw RequestException("没有登录")
                 } catch (e: Throwable) {
                     call.respondText(
                         "{\"status\": 403,\"data\": \"${e.message}\"}",

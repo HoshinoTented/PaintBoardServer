@@ -2,8 +2,11 @@ package org.hoshino9.luogu.paintboard.server
 
 import com.google.gson.Gson
 import io.ktor.application.call
+import io.ktor.application.install
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.cio.websocket.WebSocketSession
+import io.ktor.http.cio.websocket.send
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.response.respondOutputStream
@@ -13,7 +16,11 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.websocket.WebSockets
+import kotlinx.coroutines.isActive
 import java.io.PrintStream
+import java.util.*
+import kotlin.collections.HashMap
 
 data class PaintRequest(val x: Int, val y: Int, val color: Int)
 
@@ -38,12 +45,14 @@ fun loadWhiteList() {
 fun main() {
     loadWhiteList()
     embeddedServer(Netty, 8080) {
+        install(WebSockets)
+
         routing {
             get("paintBoard/board") {
                 buildString {
                     board.forEach { line ->
                         line.forEach {
-                            append(it)
+                            append(it.toString(32).toUpperCase())
                         }
 
                         appendln()

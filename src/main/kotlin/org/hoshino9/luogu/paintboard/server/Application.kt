@@ -20,14 +20,16 @@ import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.collections.HashMap
 
+const val paintDelay: Long = 10000
+
 data class PaintRequest(val x: Int, val y: Int, val color: Int)
 
 object Unknown
 
 class RequestException(errorMessage: String) : Exception(errorMessage)
 
-val board: Array<Array<Int>> = Array(400) {
-    Array(800) {
+val board: Array<Array<Int>> = Array(800) {
+    Array(400) {
         2
     }
 }
@@ -41,11 +43,10 @@ fun loadWhiteList() {
         String(Unknown::class.java.getResourceAsStream("/whitelist.txt").readBytes()).lines().filter { it.isNotBlank() }
 }
 
-@Synchronized
 suspend fun onPaint(req: PaintRequest) {
     sessions.forEach {
         try {
-            it.send(Gson().toJson(req))
+            it.send(Gson().toJsonTree(req).apply { asJsonObject.addProperty("_ws_type", "server_broadcast") }.toString())
         } catch (e: Throwable) {
             e.printStackTrace()
         }
@@ -78,16 +79,16 @@ fun main() {
                     if (clientId != null && clientId in whiteList) {
                         val lastPaint = timer[clientId]
                         val current = System.currentTimeMillis()
-                        if (lastPaint == null || current - lastPaint > 10000) {
+                        if (lastPaint == null || current - lastPaint > paintDelay) {
                             val body = call.receive<String>()
                             val req = Gson().fromJson(body, PaintRequest::class.java)
 
-                            if (req.x !in 0 until 400 || req.y !in 0 until 800) throw RequestException("position out of bounds")
+                            if (req.x !in 0 until 800 || req.y !in 0 until 400) throw RequestException("position out of bounds")
                             if (req.color !in 0..31) throw RequestException("color out of bounds")
 
                             board[req.x][req.y] = req.color
                             timer[clientId] = current
-                            call.respond(HttpStatusCode.OK)
+                            call.respondText("{\"status\":200}", status = HttpStatusCode.OK)
 
                             launch {
                                 onPaint(req)
@@ -96,7 +97,7 @@ fun main() {
                     } else throw RequestException("invalid client id")
                 } catch (e: Throwable) {
                     call.respondText(
-                        "{\"errorType\": \"${e::class.java}\", \"errorMessage\": \"${e.message}\"}",
+                        "{\"status\": 403,\"data\": \"${e.message}\"}",
                         ContentType.Application.Json,
                         HttpStatusCode.BadRequest
                     )
@@ -104,8 +105,7 @@ fun main() {
             }
 
             webSocket("/paintBoard/ws") {
-                send("Connected")
-
+                println("Connected.")
                 sessions.add(this)
 
                 for (frame in incoming) {

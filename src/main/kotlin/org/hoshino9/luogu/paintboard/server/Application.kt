@@ -105,11 +105,15 @@ fun main() {
             }
 
             webSocket("/paintBoard/ws") {
-                println("Connected.")
-                sessions.add(this)
+                try {
+                    println("Connected.")
+                    sessions.add(this)
 
-                for (frame in incoming) {
-                    println("Received: ${String(frame.readBytes())}")
+                    for (frame in incoming) {
+                        println("Received: ${String(frame.readBytes())}")
+                    }
+                } finally {
+                    sessions.remove(this)
                 }
             }
         }

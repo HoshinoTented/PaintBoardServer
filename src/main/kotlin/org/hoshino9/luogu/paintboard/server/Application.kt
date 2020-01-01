@@ -101,7 +101,7 @@ fun main() {
                     } else throw RequestException("没有登录")
                 } catch (e: Throwable) {
                     call.respondText(
-                        "{\"status\": 403,\"data\": \"${e.message}\"}",
+                        "{\"status\": 400,\"data\": \"${e.message}\"}",
                         ContentType.Application.Json,
                         HttpStatusCode.BadRequest
                     )

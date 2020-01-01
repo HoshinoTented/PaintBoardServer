@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.collections.HashMap
 
-const val paintDelay: Long = 10000
+const val paintDelay: Long = 0
 
 data class PaintRequest(val x: Int, val y: Int, val color: Int)
 
@@ -73,7 +73,7 @@ fun main() {
                         appendln()
                     }
                 }.let {
-                    call.respondText(it, ContentType.Text.Plain)
+                    call.respondText(it)
                 }
             }
 
@@ -110,7 +110,7 @@ fun main() {
 
             webSocket("/paintBoard/ws") {
                 try {
-                    println("Connected.")
+                    send("{\"type\": \"result\"}")
                     sessions.add(this)
 
                     for (frame in incoming) {

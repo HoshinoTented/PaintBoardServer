@@ -302,7 +302,7 @@
     var ws = null;
     function connectWs() {
         try {
-            ws = new WebSocket('ws://ws.localhost:8080/paintBoard/ws');
+            ws = new WebSocket('ws://localhost:8080/paintBoard/ws');
         } catch (e) {
             alert("无法连接追踪服务器");
             return;

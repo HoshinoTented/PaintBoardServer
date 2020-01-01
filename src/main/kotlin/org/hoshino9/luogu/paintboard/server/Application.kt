@@ -46,7 +46,7 @@ fun loadWhiteList() {
 suspend fun onPaint(req: PaintRequest) {
     sessions.forEach {
         try {
-            it.send(Gson().toJsonTree(req).apply { asJsonObject.addProperty("_ws_type", "server_broadcast") }.toString())
+            it.send(Gson().toJsonTree(req).apply { asJsonObject.addProperty("type", "paintboard_update") }.toString())
         } catch (e: Throwable) {
             e.printStackTrace()
         }
@@ -59,6 +59,10 @@ fun main() {
         install(WebSockets)
 
         routing {
+            get("/paintBoard") {
+                call.respondText(String(Unknown::class.java.getResourceAsStream("/paintboard.html").readBytes()), ContentType.Text.Html)
+            }
+
             get("/paintBoard/board") {
                 buildString {
                     board.forEach { line ->

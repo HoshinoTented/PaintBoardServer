@@ -22,12 +22,7 @@ object Unknown
 
 lateinit var config: Properties
 
-val sessions: MutableList<WebSocketSession> = LinkedList()
-
-@Synchronized
-suspend fun applySessions(block: suspend (MutableList<WebSocketSession>) -> Unit) {
-    block(sessions)
-}
+val sessions: MutableList<WebSocketSession> = Collections.synchronizedList(LinkedList())
 
 fun loadConfig() {
     config = Properties().apply {
@@ -36,18 +31,13 @@ fun loadConfig() {
 }
 
 suspend fun onPaint(req: PaintRequest) {
-    applySessions { sessions ->
-        sessions.forEach {
-            try {
-                it.send(Gson().toJsonTree(req).apply {
-                    asJsonObject.addProperty(
-                        "type",
-                        "paintboard_update"
-                    )
-                }.toString())
-            } catch (e: Throwable) {
-                e.printStackTrace()
-            }
+    sessions.forEach {
+        try {
+            it.send(Gson().toJsonTree(req).apply {
+                asJsonObject.addProperty("type", "paintboard_update")
+            }.toString())
+        } catch (e: Throwable) {
+            e.printStackTrace()
         }
     }
 }
@@ -76,18 +66,13 @@ fun main() {
             webSocket("/paintBoard/ws") {
                 try {
                     send("{\"type\": \"result\"}")
-                    applySessions {
-                        it.add(this)
-                    }
+                    sessions.add(this)
 
                     for (frame in incoming) {
                         println("Received: ${String(frame.readBytes())}")
                     }
                 } finally {
-                    applySessions {
-                        it.remove(this)
-                    }
-
+                    sessions.remove(this)
                     println("Removed.")
                 }
             }

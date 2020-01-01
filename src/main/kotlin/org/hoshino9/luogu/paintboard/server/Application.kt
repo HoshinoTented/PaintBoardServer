@@ -21,7 +21,13 @@ class RequestException(errorMessage: String) : Exception(errorMessage)
 object Unknown
 
 lateinit var config: Properties
+
 val sessions: MutableList<WebSocketSession> = LinkedList()
+
+@Synchronized
+suspend fun applySessions(block: suspend (MutableList<WebSocketSession>) -> Unit) {
+    block(sessions)
+}
 
 fun loadConfig() {
     config = Properties().apply {
@@ -30,11 +36,18 @@ fun loadConfig() {
 }
 
 suspend fun onPaint(req: PaintRequest) {
-    sessions.forEach {
-        try {
-            it.send(Gson().toJsonTree(req).apply { asJsonObject.addProperty("type", "paintboard_update") }.toString())
-        } catch (e: Throwable) {
-            e.printStackTrace()
+    applySessions { sessions ->
+        sessions.forEach {
+            try {
+                it.send(Gson().toJsonTree(req).apply {
+                    asJsonObject.addProperty(
+                        "type",
+                        "paintboard_update"
+                    )
+                }.toString())
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
         }
     }
 }
@@ -49,8 +62,13 @@ fun main() {
             board()
 
             get("/paintBoard") {
+                var html = String(Unknown::class.java.getResourceAsStream("/paintboard.html").readBytes())
+                if (config.containsKey("wsurl")) {
+                    html = html.replace("\${wsurl}", config.getProperty("wsurl"))
+                }
+
                 call.respondText(
-                    String(Unknown::class.java.getResourceAsStream("/paintboard.html").readBytes()),
+                    html,
                     ContentType.Text.Html
                 )
             }
@@ -58,13 +76,18 @@ fun main() {
             webSocket("/paintBoard/ws") {
                 try {
                     send("{\"type\": \"result\"}")
-                    sessions.add(this)
+                    applySessions {
+                        it.add(this)
+                    }
 
                     for (frame in incoming) {
                         println("Received: ${String(frame.readBytes())}")
                     }
                 } finally {
-                    sessions.remove(this)
+                    applySessions {
+                        it.remove(this)
+                    }
+
                     println("Removed.")
                 }
             }

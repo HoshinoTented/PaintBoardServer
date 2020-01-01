@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="keywords" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1 user-scalable=no">
-    <title>冬日绘板 - 洛谷</title>
+    <title>绘板</title>
     <link rel="stylesheet" href="https://cdn.luogu.com.cn/css/amazeui.min.css">
     <style>
         .about {
@@ -66,7 +66,7 @@
 <header class="am-topbar am-topbar-fixed-top">
     <div class="am-container">
         <h1 class="am-topbar-brand">
-            <a href="#">洛谷冬日绘板</a>
+            <a href="#">绘板</a>
         </h1>
 
         <button class="am-topbar-btn am-topbar-toggle am-btn am-btn-sm am-btn-secondary am-show-sm-only"
@@ -86,7 +86,7 @@
 <div class="about">
     <div class="am-g am-container">
         <div class="am-u-lg-12">
-            <h2 class="about-title about-color">洛谷 冬日绘板</h2>
+            <h2 class="about-title about-color">绘板</h2>
 
             <div class="am-g">
                 <div class="am-u-lg-11" id="canvas-box">
@@ -107,12 +107,9 @@
                 </div>
 
                 <div class="am-u-lg-12">
-                    <p>活动时间: 2020/1/1 00:00~23:59</p>
-                    <p>活动规则: 活动7日前注册的，咕值101、未被禁言、已认证手机的用户可参与。每个用户10秒可涂鸦一个点，可随意覆盖任何区域。</p>
-                    <p>禁止绘制违反法律、社会公德的图形，否则将被清除且账号会受到处罚。</p>
+                    <p>前端来源：<a href="https://www.luogu.com.cn">洛谷</a></p>
                 </div>
-
-                            </div>
+            </div>
         </div>
     </div>
 </div>
@@ -302,7 +299,7 @@
     var ws = null;
     function connectWs() {
         try {
-            ws = new WebSocket('ws://localhost:8080/paintBoard/ws');
+            ws = new WebSocket('${wsurl}/paintBoard/ws');
         } catch (e) {
             alert("无法连接追踪服务器");
             return;

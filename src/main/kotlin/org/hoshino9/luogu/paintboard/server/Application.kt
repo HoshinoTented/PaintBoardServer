@@ -16,7 +16,7 @@ import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
 import java.util.*
 
-data class PaintRequest(val x: Int, val y: Int, val color: Int)
+data class PaintRequest(val x: Int, val y: Int, val color: String)
 class RequestException(errorMessage: String) : Exception(errorMessage)
 object Unknown
 

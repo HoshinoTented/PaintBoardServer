@@ -168,8 +168,8 @@
         ctx.save();
 
         let r = parseInt(color.substr(0, 2), 16);
-        let g = parseInt(color.substr(2, 4), 16);
-        let b = parseInt(color.substr(4, 6), 16);
+        let g = parseInt(color.substr(2, 2), 16);
+        let b = parseInt(color.substr(4, 2), 16);
 
         ctx.fillStyle = "rgb(" + r + ", " + g + ", " + b + ")";
         ctx.fillRect(x * 5, y * 5, 5, 5);

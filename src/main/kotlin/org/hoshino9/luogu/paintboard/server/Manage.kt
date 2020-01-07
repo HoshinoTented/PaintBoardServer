@@ -23,16 +23,24 @@ suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: (String) ->
     } else call.respond(HttpStatusCode.Forbidden)
 }
 
+fun save() {
+    redis["board"] = boardText
+}
+
+fun load() {
+    boardText = redis["board"] ?: throw IllegalStateException("No such field: board")
+}
+
 fun Routing.managePage() {
     post("/paintBoard/save") {
         manageRequest { path ->
-            File(path).writeText(boardText)
+            save()
         }
     }
 
     post("/paintBoard/load") {
         manageRequest { path ->
-            boardText = File(path).readText()
+            load()
         }
     }
 }

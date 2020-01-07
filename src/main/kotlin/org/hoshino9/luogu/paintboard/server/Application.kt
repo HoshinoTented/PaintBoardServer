@@ -14,6 +14,9 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import redis.clients.jedis.Jedis
 import java.util.*
 
 data class PaintRequest(val x: Int, val y: Int, val color: String)
@@ -21,6 +24,7 @@ class RequestException(errorMessage: String) : Exception(errorMessage)
 object Unknown
 
 lateinit var config: Properties
+lateinit var redis: Jedis
 
 val sessions: MutableList<WebSocketSession> = Collections.synchronizedList(LinkedList())
 
@@ -29,6 +33,15 @@ fun loadConfig() {
         load(Unknown::class.java.getResourceAsStream("/config.properties"))
     }
 }
+
+fun connectRedis() {
+    val host = config.getProperty("host") ?: throw IllegalArgumentException("no host found")
+    val port = config.getProperty("port")?.toInt() ?: 6379
+
+    redis = Jedis(host, port)
+    println("Connected redis server: $host:$port")
+}
+
 
 suspend fun onPaint(req: PaintRequest) {
     sessions.forEach {
@@ -44,7 +57,23 @@ suspend fun onPaint(req: PaintRequest) {
 
 fun main() {
     loadConfig()
+    connectRedis()
+
     embeddedServer(Netty, 8080) {
+        try {
+            load()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        launch {
+            while (true) {
+                println("Saving board...")
+                save()
+                delay(5 * 60 * 1000)
+            }
+        }
+
         install(WebSockets)
 
         routing {

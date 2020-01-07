@@ -28,6 +28,7 @@ dependencies {
     implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
     implementation("io.ktor:ktor-websockets:$ktorVersion")
     implementation("io.ktor:ktor-client-websockets:$ktorVersion")
+    implementation("redis.clients:jedis:3.2.0")
 }
 
 tasks {

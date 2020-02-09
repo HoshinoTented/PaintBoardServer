@@ -10,12 +10,21 @@ import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
 import kotlinx.coroutines.launch
+import java.util.*
 
-val board: Array<IntArray> = Array(800) {
-    IntArray(400) {
-        0x000000
+val board: MutableList<MutableList<Int>> = Collections.synchronizedList(
+    ArrayList<MutableList<Int>>().apply {
+        repeat(800) {
+            ArrayList<Int>().apply {
+                repeat(400) {
+                    add(0x000000)
+                }
+            }.let {
+                Collections.synchronizedList(it).run(::add)
+            }
+        }
     }
-}
+)
 
 var boardText: String
     get() {

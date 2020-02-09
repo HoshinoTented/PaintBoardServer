@@ -11,8 +11,8 @@
 /paintBoard/board | GET                                  | 获取绘板内容
 /paintBoard/paint | POST(x: Int, y: Int, color: Int)     | 进行绘画
 /paintBoard/ws    | WebSocket                            | 监听绘板变化的 WebSocket
-/paintBoard/save  | POST(password: String, path: String) | 保存绘板到本地
-/paintBoard/load  | POST(password: String, path: String) | 从本地加载绘板（不会发送 WebSocket 信息）
+/paintBoard/save  | POST(password: String, path: String) | 保存绘板到数据库
+/paintBoard/load  | POST(password: String, path: String) | 从数据库加载绘板（不会发送 WebSocket 信息）
 
 ## How to RUN it
 

@@ -17,6 +17,7 @@ import io.ktor.websocket.webSocket
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import redis.clients.jedis.Jedis
+import java.io.File
 import java.util.*
 
 data class PaintRequest(val x: Int, val y: Int, val color: String)
@@ -30,7 +31,7 @@ val sessions: MutableList<WebSocketSession> = Collections.synchronizedList(Linke
 
 fun loadConfig() {
     config = Properties().apply {
-        load(Unknown::class.java.getResourceAsStream("/config.properties"))
+        load(File("config.properties").inputStream())
     }
 }
 
@@ -41,7 +42,6 @@ fun connectRedis() {
     redis = Jedis(host, port)
     println("Connected redis server: $host:$port")
 }
-
 
 suspend fun onPaint(req: PaintRequest) {
     sessions.forEach {
@@ -59,13 +59,13 @@ fun main() {
     loadConfig()
     connectRedis()
 
-    embeddedServer(Netty, 8080) {
-        try {
-            load()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+    try {
+        load()
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 
+    embeddedServer(Netty, 8080) {
         launch {
             while (true) {
                 println("Saving board...")
@@ -86,10 +86,7 @@ fun main() {
                     html = html.replace("\${wsurl}", config.getProperty("wsurl"))
                 }
 
-                call.respondText(
-                    html,
-                    ContentType.Text.Html
-                )
+                call.respondText(html, ContentType.Text.Html)
             }
 
             webSocket("/paintBoard/ws") {

@@ -60,6 +60,9 @@
             height: 430px;
             overflow: auto;
         }
+        #mycanvas{
+            image-rendering: pixelated;
+        }
     </style>
 </head>
 <body>
@@ -68,15 +71,12 @@
         <h1 class="am-topbar-brand">
             <a href="#">绘板</a>
         </h1>
-
         <button class="am-topbar-btn am-topbar-toggle am-btn am-btn-sm am-btn-secondary am-show-sm-only"
                 data-am-collapse="{target: '#collapse-head'}"><span class="am-sr-only">导航切换</span> <span
                     class="am-icon-bars"></span></button>
 
         <div class="am-collapse am-topbar-collapse" id="collapse-head">
             <ul class="am-nav am-nav-pills am-topbar-nav">
-
-
             </ul>
         </div>
     </div>
@@ -90,12 +90,12 @@
 
             <div class="am-g">
                 <div class="am-u-lg-11" id="canvas-box">
-                    <canvas width=4000 height=2000 id='mycanvas'>
+                    <canvas width=800 height=400 id='mycanvas'>
                     </canvas>
                 </div>
 
                 <div class="am-u-lg-1">
-                    <p style="">
+                    <p>
                         还剩<br><span id='timeleft' class="am-badge am-badge-secondary"></span>
                     </p>
                 </div>
@@ -167,7 +167,7 @@
         let b = parseInt(color.substr(4, 2), 16);
 
         ctx.fillStyle = "rgb(" + r + ", " + g + ", " + b + ")";
-        ctx.fillRect(x * 5, y * 5, 5, 5);
+        ctx.fillRect(x, y, 1, 1);
     }
 
     function initpale() {

@@ -11,14 +11,13 @@ import io.ktor.routing.post
 import io.ktor.util.pipeline.PipelineContext
 import java.io.File
 
-suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: (String) -> Unit) {
+suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: () -> Unit) {
     val body = call.receive<String>().parseJson().asJsonObject
 
     val password = body["password"].asString
-    val path = body["path"].asString
 
     if (password == config.getProperty("password")) {
-        block(path)
+        block()
         call.respond(HttpStatusCode.OK)
     } else call.respond(HttpStatusCode.Forbidden)
 }
@@ -33,13 +32,13 @@ fun load() {
 
 fun Routing.managePage() {
     post("/paintBoard/save") {
-        manageRequest { path ->
+        manageRequest {
             save()
         }
     }
 
     post("/paintBoard/load") {
-        manageRequest { path ->
+        manageRequest {
             load()
         }
     }

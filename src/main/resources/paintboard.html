@@ -127,8 +127,7 @@
 <script src="assets/js/amazeui.ie8polyfill.min.js"></script>
 <![endif]-->
 <script>
-    let c = document.getElementById("mycanvas");
-    let ctx = c.getContext("2d");
+    let ctx = document.getElementById("mycanvas").getContext("2d");
     H = 400;
     W = 800;
     nowcolor = 0x000000;
@@ -148,8 +147,6 @@
     }
 
     function render(arr) {
-        var c = document.getElementById("mycanvas");
-        var ctx = c.getContext("2d");
         for (var i = 0; i < H; i++) {
             for (var j = 0; j < W; j++) {
                 ctx.fillStyle = arr[i][j];
@@ -164,8 +161,6 @@
             dragged = 0;
             return;
         }
-        //alert('ss');
-        //ctx.save();
 
         let r = parseInt(color.substr(0, 2), 16);
         let g = parseInt(color.substr(2, 2), 16);
@@ -294,7 +289,6 @@
 
     function initialPaint() {
         $.get("/paintBoard/board", function(resp) {
-            resp = resp.replace(/\r/g, '');
             resp.split('\n').map(function(colorStr, x) {
                 colorStr.split("|").map(function(color, y) {
                     //if(color !== '2') console.log(x, y, color);

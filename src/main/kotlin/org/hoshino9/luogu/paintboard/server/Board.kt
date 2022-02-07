@@ -30,7 +30,7 @@ var boardText: String
     get() {
         return buildString {
             board.forEach { line ->
-                line.joinToString(separator = "|") { "%06X".format(it) }.run(::appendln)
+                line.joinToString(separator = "|") { "%06X".format(it) }.run(::appendLine)
             }
         }
     }

@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.3.61"
+    kotlin("jvm") version "1.6.10"
     application
 }
 
@@ -28,7 +28,7 @@ dependencies {
     implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
     implementation("io.ktor:ktor-websockets:$ktorVersion")
     implementation("io.ktor:ktor-client-websockets:$ktorVersion")
-    implementation("redis.clients:jedis:3.2.0")
+    implementation("org.litote.kmongo:kmongo-coroutine:4.4.0")
 }
 
 tasks {

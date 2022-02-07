@@ -16,16 +16,20 @@ import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import redis.clients.jedis.Jedis
+import org.litote.kmongo.coroutine.CoroutineDatabase
+import org.litote.kmongo.coroutine.coroutine
+import org.litote.kmongo.reactivestreams.KMongo
 import java.io.File
 import java.util.*
 
 data class PaintRequest(val x: Int, val y: Int, val color: String)
+data class User(val username: String, val password: String)
+data class Paintboard(val name: String, val text: String)
 class RequestException(errorMessage: String) : Exception(errorMessage)
 object Unknown
 
 lateinit var config: Properties
-lateinit var redis: Jedis
+lateinit var mongo: CoroutineDatabase
 
 val sessions: MutableList<WebSocketSession> = Collections.synchronizedList(LinkedList())
 
@@ -35,12 +39,13 @@ fun loadConfig() {
     }
 }
 
-fun connectRedis() {
+fun connectMongoDB() {
     val host = config.getProperty("host") ?: throw IllegalArgumentException("no host found")
-    val port = config.getProperty("port")?.toInt() ?: 6379
+    val port = config.getProperty("port") ?: "27017"
+    val db = config.getProperty("database") ?: throw IllegalArgumentException("no database found")
 
-    redis = Jedis(host, port)
-    println("Connected redis server: $host:$port")
+    mongo = KMongo.createClient(host + ":" + port).coroutine.getDatabase(db)
+    println("Connected to MongoDB server: $host:$port/$db")
 }
 
 suspend fun onPaint(req: PaintRequest) {
@@ -57,7 +62,7 @@ suspend fun onPaint(req: PaintRequest) {
 
 fun main() {
     loadConfig()
-    connectRedis()
+    connectMongoDB()
 
     try {
         load()
@@ -78,6 +83,7 @@ fun main() {
 
         routing {
             managePage()
+            loginPage()
             board()
 
             get("/paintBoard") {

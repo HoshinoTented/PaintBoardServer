@@ -1,6 +1,5 @@
 package org.hoshino9.luogu.paintboard.server
 
-import com.google.gson.JsonParser
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
@@ -9,7 +8,9 @@ import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.post
 import io.ktor.util.pipeline.PipelineContext
-import java.io.File
+import kotlinx.coroutines.runBlocking
+import org.litote.kmongo.eq
+import org.litote.kmongo.setValue
 
 suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: () -> Unit) {
     val body = call.receive<String>().parseJson().asJsonObject
@@ -23,11 +24,24 @@ suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: () -> Unit)
 }
 
 fun save() {
-    redis["board"] = boardText
+    runBlocking {
+        mongo.getCollection<Paintboard>()
+            .findOneAndUpdate(
+                Paintboard::name eq "paintboard",
+                setValue(Paintboard::text, boardText)
+            ) ?: runBlocking {
+                mongo.getCollection<Paintboard>()
+                    .insertOne(Paintboard("paintboard", boardText))
+            }
+    }
 }
 
 fun load() {
-    boardText = redis["board"] ?: throw IllegalStateException("No such field: board")
+    runBlocking {
+        boardText = mongo.getCollection<Paintboard>()
+            .findOne(Paintboard::name eq "paintboard")?.text
+            ?: throw IllegalStateException("No such document: paintboard")
+    }
 }
 
 fun Routing.managePage() {

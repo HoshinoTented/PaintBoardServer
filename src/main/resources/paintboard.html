@@ -60,6 +60,9 @@
             height: 430px;
             overflow: auto;
         }
+        #mycanvas{
+            image-rendering: pixelated;
+        }
     </style>
 </head>
 <body>
@@ -68,15 +71,12 @@
         <h1 class="am-topbar-brand">
             <a href="#">绘板</a>
         </h1>
-
         <button class="am-topbar-btn am-topbar-toggle am-btn am-btn-sm am-btn-secondary am-show-sm-only"
                 data-am-collapse="{target: '#collapse-head'}"><span class="am-sr-only">导航切换</span> <span
                     class="am-icon-bars"></span></button>
 
         <div class="am-collapse am-topbar-collapse" id="collapse-head">
             <ul class="am-nav am-nav-pills am-topbar-nav">
-
-
             </ul>
         </div>
     </div>
@@ -90,12 +90,12 @@
 
             <div class="am-g">
                 <div class="am-u-lg-11" id="canvas-box">
-                    <canvas width=4000 height=2000 id='mycanvas'>
+                    <canvas width=800 height=400 id='mycanvas'>
                     </canvas>
                 </div>
 
                 <div class="am-u-lg-1">
-                    <p style="">
+                    <p>
                         还剩<br><span id='timeleft' class="am-badge am-badge-secondary"></span>
                     </p>
                 </div>
@@ -131,30 +131,13 @@
     H = 400;
     W = 800;
     nowcolor = 0x000000;
-    scale = 5;
+    scale = 1;
     dragged = 0;
     lasttime = 1577874127;
     timelimit = 0;
     colorlist = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(170, 170, 170)', 'rgb(85, 85, 85)', 'rgb(254, 211, 199)', 'rgb(255, 196, 206)', 'rgb(250, 172, 142)', 'rgb(255, 139, 131)', 'rgb(244, 67, 54)', 'rgb(233, 30, 99)', 'rgb(226, 102, 158)', 'rgb(156, 39, 176)', 'rgb(103, 58, 183)', 'rgb(63, 81, 181)', 'rgb(0, 70, 112)', 'rgb(5, 113, 151)', 'rgb(33, 150, 243)', 'rgb(0, 188, 212)', 'rgb(59, 229, 219)', 'rgb(151, 253, 220)', 'rgb(22, 115, 0)', 'rgb(55, 169, 60)', 'rgb(137, 230, 66)', 'rgb(215, 255, 7)', 'rgb(255, 246, 209)', 'rgb(248, 203, 140)', 'rgb(255, 235, 59)', 'rgb(255, 193, 7)', 'rgb(255, 152, 0)', 'rgb(255, 87, 34)', 'rgb(184, 63, 39)', 'rgb(121, 85, 72)'];
     rgblist = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
     nowintevel = 0;
-    var myarr = [];
-    for (var i = 0; i < H; i++) {
-        myarr[i] = [];
-        for (var j = 0; j < W; j++) {
-            myarr[i][j] = '#dddddd';
-        }
-    }
-
-    function render(arr) {
-        for (var i = 0; i < H; i++) {
-            for (var j = 0; j < W; j++) {
-                ctx.fillStyle = arr[i][j];
-                ctx.fillRect(j * scale, i * scale, scale, scale);
-            }
-        }
-
-    }
 
     function update(y, x, color) {
         if (dragged) {
@@ -167,7 +150,7 @@
         let b = parseInt(color.substr(4, 2), 16);
 
         ctx.fillStyle = "rgb(" + r + ", " + g + ", " + b + ")";
-        ctx.fillRect(x * 5, y * 5, 5, 5);
+        ctx.fillRect(x, y, 1, 1);
     }
 
     function initpale() {
@@ -196,26 +179,17 @@
     $("[zoom]").click(function () {
         zoom($(this).attr('zoom'));
     });
-    myarr[10][10] = '#6600ff';
-    myarr[100][200] = '#66ccff';
-    render(myarr);
     initpale();
     $('.paleitem').bind("click", binditem);
     $('[data-cid=0]').addClass("selected");
     $('#mycanvas').bind("click", function () {
-        //alert(event.offsetY);
         if (new Date() < (lasttime + timelimit) * 1000) {
             alert("冷却时间未到，暂时不能涂色");
             return;
         }
         var x = parseInt(event.offsetX / scale);
         var y = parseInt(event.offsetY / scale);
-        update(
-            y,
-            x,
-            rgblist[nowcolor]
-        );
-
+        update(y, x, rgblist[nowcolor]);
 
         $.post("/paintBoard/paint", JSON.stringify({
             x: x,

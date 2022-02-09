@@ -128,16 +128,16 @@
 <![endif]-->
 <script>
     let ctx = document.getElementById("mycanvas").getContext("2d");
-    H = 400;
-    W = 800;
-    nowcolor = 0x000000;
-    scale = 1;
-    dragged = 0;
-    lasttime = 1577874127;
-    timelimit = 0;
-    colorlist = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(170, 170, 170)', 'rgb(85, 85, 85)', 'rgb(254, 211, 199)', 'rgb(255, 196, 206)', 'rgb(250, 172, 142)', 'rgb(255, 139, 131)', 'rgb(244, 67, 54)', 'rgb(233, 30, 99)', 'rgb(226, 102, 158)', 'rgb(156, 39, 176)', 'rgb(103, 58, 183)', 'rgb(63, 81, 181)', 'rgb(0, 70, 112)', 'rgb(5, 113, 151)', 'rgb(33, 150, 243)', 'rgb(0, 188, 212)', 'rgb(59, 229, 219)', 'rgb(151, 253, 220)', 'rgb(22, 115, 0)', 'rgb(55, 169, 60)', 'rgb(137, 230, 66)', 'rgb(215, 255, 7)', 'rgb(255, 246, 209)', 'rgb(248, 203, 140)', 'rgb(255, 235, 59)', 'rgb(255, 193, 7)', 'rgb(255, 152, 0)', 'rgb(255, 87, 34)', 'rgb(184, 63, 39)', 'rgb(121, 85, 72)'];
-    rgblist = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
-    nowintevel = 0;
+    const timeLimit = 10;
+    const H = 400;
+    const W = 800;
+    const colorList = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(170, 170, 170)', 'rgb(85, 85, 85)', 'rgb(254, 211, 199)', 'rgb(255, 196, 206)', 'rgb(250, 172, 142)', 'rgb(255, 139, 131)', 'rgb(244, 67, 54)', 'rgb(233, 30, 99)', 'rgb(226, 102, 158)', 'rgb(156, 39, 176)', 'rgb(103, 58, 183)', 'rgb(63, 81, 181)', 'rgb(0, 70, 112)', 'rgb(5, 113, 151)', 'rgb(33, 150, 243)', 'rgb(0, 188, 212)', 'rgb(59, 229, 219)', 'rgb(151, 253, 220)', 'rgb(22, 115, 0)', 'rgb(55, 169, 60)', 'rgb(137, 230, 66)', 'rgb(215, 255, 7)', 'rgb(255, 246, 209)', 'rgb(248, 203, 140)', 'rgb(255, 235, 59)', 'rgb(255, 193, 7)', 'rgb(255, 152, 0)', 'rgb(255, 87, 34)', 'rgb(184, 63, 39)', 'rgb(121, 85, 72)'];
+    const rgbList = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
+    let nowColor = 0x000000;
+    let scale = 1;
+    let dragged = 0;
+    let lastTime = 1577874127;
+    let nowInterval = 0;
 
     function update(y, x, color) {
         if (dragged) {
@@ -155,7 +155,7 @@
 
     function initpale() {
         $('#palette').html('');
-        colorlist.forEach(function (k, v) {
+        colorList.forEach(function (k, v) {
             console.log(k, v);
             $('#palette').append('<div class="paleitem" data-cid=' + v + '></div>');
             $('[data-cid=' + v + ']').css('background', k);
@@ -166,7 +166,7 @@
     binditem = function () {
         $('.paleitem').removeClass("selected");
         $(this).addClass("selected");
-        nowcolor = $(this).attr('data-cid');
+        nowColor = $(this).attr('data-cid');
     }
     zoom = function (s) {
         scale = s;
@@ -183,24 +183,25 @@
     $('.paleitem').bind("click", binditem);
     $('[data-cid=0]').addClass("selected");
     $('#mycanvas').bind("click", function () {
-        if (new Date() < (lasttime + timelimit) * 1000) {
+        if (new Date() < (lastTime + timeLimit) * 1000) {
             alert("冷却时间未到，暂时不能涂色");
             return;
         }
         var x = parseInt(event.offsetX / scale);
         var y = parseInt(event.offsetY / scale);
-        update(y, x, rgblist[nowcolor]);
 
         $.post("/paintBoard/paint", JSON.stringify({
             x: x,
             y: y,
-            color: rgblist[nowcolor]
+            color: rgbList[nowColor]
         }), function(resp) {
+            console.log(resp);
             if (resp.status !== 200) {
                 alert(resp.data)
             } else {
-                lasttime = (new Date()) / 1000;
-                getCountDown(lasttime + timelimit);
+                lastTime = (new Date()) / 1000;
+                getCountDown(lastTime + timeLimit);
+                update(y, x, rgbList[nowColor]);
             }
         });
     })
@@ -235,14 +236,14 @@
     });
 
     function getCountDown(timestamp) {
-        clearInterval(nowintevel);
-        nowintevel = setInterval(function () {
+        clearInterval(nowInterval);
+        nowInterval = setInterval(function () {
             var nowTime = new Date();
             var endTime = new Date(timestamp * 1000);
             var t = endTime.getTime() - nowTime.getTime();
             if (t < 0) {
                 $("#timeleft").html("冷却时间到");
-                clearInterval(nowintevel);
+                clearInterval(nowInterval);
                 return;
             }
             var hour = Math.floor(t / 1000 / 60 / 60 % 24);
@@ -259,7 +260,7 @@
         }, 1000);
     }
 
-    getCountDown(lasttime + timelimit);
+    getCountDown(lastTime + timeLimit);
 
     function initialPaint() {
         $.get("/paintBoard/board", function(resp) {

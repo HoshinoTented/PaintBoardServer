@@ -1,21 +1,20 @@
 package org.hoshino9.luogu.paintboard.server
 
 import com.google.gson.Gson
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.http.ContentType
-import io.ktor.http.cio.websocket.WebSocketSession
-import io.ktor.http.cio.websocket.readBytes
-import io.ktor.http.cio.websocket.send
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.websocket.WebSockets
-import io.ktor.websocket.webSocket
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.sessions.*
+import io.ktor.util.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.litote.kmongo.Id
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
@@ -23,13 +22,16 @@ import java.io.File
 import java.util.*
 
 data class PaintRequest(val x: Int, val y: Int, val color: String)
-data class User(val username: String, val password: String)
+data class User(val _id: Id<User>, val username: String, val password: String)
+data class UserSession(val id: String, val username: String, val time: Long): Principal
 data class Paintboard(val name: String, val text: String)
 class RequestException(errorMessage: String) : Exception(errorMessage)
 object Unknown
 
 lateinit var config: Properties
 lateinit var mongo: CoroutineDatabase
+
+var delay: Long = 0
 
 val sessions: MutableList<WebSocketSession> = Collections.synchronizedList(LinkedList())
 
@@ -44,7 +46,7 @@ fun connectMongoDB() {
     val port = config.getProperty("port") ?: "27017"
     val db = config.getProperty("database") ?: throw IllegalArgumentException("no database found")
 
-    mongo = KMongo.createClient(host + ":" + port).coroutine.getDatabase(db)
+    mongo = KMongo.createClient("$host:$port").coroutine.getDatabase(db)
     println("Connected to MongoDB server: $host:$port/$db")
 }
 
@@ -64,6 +66,8 @@ fun main() {
     loadConfig()
     connectMongoDB()
 
+    delay = (config.getProperty("delay")?.toLong() ?: 0) * 1000
+
     try {
         load()
     } catch (e: Exception) {
@@ -80,6 +84,28 @@ fun main() {
         }
 
         install(WebSockets)
+        install(Sessions) {
+            cookie<UserSession>("user_session") {
+                cookie.path = "/" // Specify cookie's path '/' so it can be used in the whole site
+                transform(SessionTransportTransformerMessageAuthentication(
+                    hex("1145141919810"), "HmacSHA256" //FIXIT use a random key instead of 1145141919810
+                ))
+            }
+        }
+        install(Authentication) {
+            session<UserSession>("auth-session") {
+                validate { session ->
+                    session
+                }
+                challenge {
+                    call.respondText(
+                        "{\"status\": 400, \"data\": \"请先登录\"}",
+                        contentType = ContentType.Application.Json,
+                        status = HttpStatusCode.OK
+                    )
+                }
+            }
+        }
 
         routing {
             managePage()

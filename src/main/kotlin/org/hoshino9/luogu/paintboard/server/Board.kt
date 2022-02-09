@@ -2,6 +2,7 @@ package org.hoshino9.luogu.paintboard.server
 
 import com.google.gson.Gson
 import io.ktor.application.call
+import io.ktor.auth.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
@@ -9,6 +10,7 @@ import io.ktor.response.respondText
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
+import io.ktor.sessions.*
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -48,30 +50,35 @@ fun Routing.board() {
         call.respondText(boardText)
     }
 
-    post("/paintBoard/paint") {
-        try {
-            val body = call.receive<String>()
-            val req = Gson().fromJson(body, PaintRequest::class.java)
+    authenticate("auth-session"){
+        post("/paintBoard/paint") {
+            try {
+                val body = call.receive<String>()
+                val req = Gson().fromJson(body, PaintRequest::class.java)
+                val session = call.principal<UserSession>()
 
-            if (req.x !in 0 until 800 || req.y !in 0 until 400) throw RequestException("坐标越界")
-            if (req.color.toInt(16) !in 0x000000..0xFFFFFF) throw RequestException("颜色越界")
+                if (System.currentTimeMillis() - (session?.time ?: 0) <= delay) throw RequestException("冷却时间未到")
+                if (req.x !in 0 until 800 || req.y !in 0 until 400) throw RequestException("坐标越界")
+                if (req.color.toInt(16) !in 0x000000..0xFFFFFF) throw RequestException("颜色越界")
 
-            board[req.x][req.y] = req.color.toInt(16)
-            call.respondText(
-                "{\"status\":200}",
-                contentType = ContentType.Application.Json,
-                status = HttpStatusCode.OK
-            )
+                board[req.x][req.y] = req.color.toInt(16)
+                call.sessions.set(session?.copy(time = System.currentTimeMillis()))
+                call.respondText(
+                    "{\"status\": 200}",
+                    contentType = ContentType.Application.Json,
+                    status = HttpStatusCode.OK
+                )
 
-            launch {
-                onPaint(req)
+                launch {
+                    onPaint(req)
+                }
+            } catch (e: Throwable) {
+                call.respondText(
+                    "{\"status\": 400,\"data\": \"${e.message}\"}",
+                    ContentType.Application.Json,
+                    HttpStatusCode.OK
+                )
             }
-        } catch (e: Throwable) {
-            call.respondText(
-                "{\"status\": 400,\"data\": \"${e.message}\"}",
-                ContentType.Application.Json,
-                HttpStatusCode.BadRequest
-            )
         }
     }
 }

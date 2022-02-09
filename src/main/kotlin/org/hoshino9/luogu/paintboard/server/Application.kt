@@ -86,9 +86,9 @@ fun main() {
         install(WebSockets)
         install(Sessions) {
             cookie<UserSession>("user_session") {
-                cookie.path = "/" // Specify cookie's path '/' so it can be used in the whole site
+                cookie.path = "/"
                 transform(SessionTransportTransformerMessageAuthentication(
-                    hex("1145141919810"), "HmacSHA256" //FIXIT use a random key instead of 1145141919810
+                    hex("a5c117cf86455c73"), "HmacSHA256"
                 ))
             }
         }

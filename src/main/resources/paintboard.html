@@ -246,29 +246,37 @@
         e.preventDefault();
     })
 
-    $('#mycanvas').bind("mousewheel", function (event, delta) {
-        var delta = event.originalEvent.deltaY;
-        var y = parseInt(event.offsetY / scale);
-        var x = parseInt(event.offsetX / scale);
-        console.log(event);
+    $('#mycanvas').bind("wheel", function (event, deltay) {
+        let delta = event.originalEvent.deltaY;
+        if (delta == 0) return false;
+        let y = parseInt(event.offsetY / scale);
+        let x = parseInt(event.offsetX / scale);
+        let relocate = false;
         if (delta > 0) {
-            if (scale == 10)
+            if (scale == 10) {
                 zoom(5);
-            else if (scale == 5)
+                relocate = true;
+            }
+            else if (scale == 5) {
                 zoom(1);
+            }
         } else {
-            if (scale == 1)
+            if (scale == 1) {
                 zoom(5);
-            else if (scale == 5)
+                relocate = true;
+            }
+            else if (scale == 5) {
                 zoom(10);
+                relocate = true;
+            }
         }
-        if (scale != 1) {
+        if (relocate) {
             let left = -x * scale + x;
             let top = -y * scale + y;
             left=Math.min(left, 0);
-            left=Math.max(left, 800-mycanvas.width());
+            left=Math.max(left, 800 - mycanvas.width());
             top=Math.min(top, 0);
-            top=Math.max(top, 400-mycanvas.height());
+            top=Math.max(top, 400 - mycanvas.height());
             $('#mycanvas').css('top', top);
             $('#mycanvas').css('left', left);
         }

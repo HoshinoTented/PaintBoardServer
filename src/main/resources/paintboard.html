@@ -1,5 +1,6 @@
 <!doctype html>
 <html class="no-js">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -60,250 +61,371 @@
             height: 430px;
             overflow: auto;
         }
-        #mycanvas{
+
+        #mycanvas {
             image-rendering: pixelated;
         }
     </style>
 </head>
+
 <body>
-<header class="am-topbar am-topbar-fixed-top">
-    <div class="am-container">
-        <h1 class="am-topbar-brand">
-            <a href="#">绘板</a>
-        </h1>
-        <button class="am-topbar-btn am-topbar-toggle am-btn am-btn-sm am-btn-secondary am-show-sm-only"
-                data-am-collapse="{target: '#collapse-head'}"><span class="am-sr-only">导航切换</span> <span
-                    class="am-icon-bars"></span></button>
-
-        <div class="am-collapse am-topbar-collapse" id="collapse-head">
-            <ul class="am-nav am-nav-pills am-topbar-nav">
-            </ul>
+    <header class="am-topbar am-topbar-fixed-top">
+        <div class="am-container">
+            <h1 class="am-topbar-brand">
+                <a href="#">绘板</a>
+            </h1>
+            <div class="am-topbar-right">
+                <button class="am-btn am-btn-primary am-topbar-btn am-btn-sm" id="login-button">登录</button>
+                <div class="am-dropdown" data-am-dropdown>
+                    <button class="am-btn am-btn-primary am-topbar-btn am-btn-sm am-dropdown-toggle" id="user-dropdown"
+                        data-am-dropdown-toggle>
+                        <span id="username"></span>
+                        <span class="am-icon-caret-down"></span>
+                    </button>
+                    <ul class="am-dropdown-content">
+                        <li><a href="/paintBoard/logout" id="logout"><span class="am-icon-sign-out"></span>登出</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    </div>
-</header>
+    </header>
 
 
-<div class="about">
-    <div class="am-g am-container">
-        <div class="am-u-lg-12">
-            <h2 class="about-title about-color">绘板</h2>
+    <div class="about">
+        <div class="am-g am-container">
+            <div class="am-u-lg-12">
+                <h2 class="about-title about-color">绘板</h2>
 
-            <div class="am-g">
-                <div class="am-u-lg-11" id="canvas-box">
-                    <canvas width=800 height=400 id='mycanvas'>
-                    </canvas>
-                </div>
+                <div class="am-g">
+                    <div class="am-u-lg-11" id="canvas-box">
+                        <canvas width=800 height=400 id='mycanvas'>
+                        </canvas>
+                    </div>
 
-                <div class="am-u-lg-1">
-                    <p>
-                        还剩<br><span id='timeleft' class="am-badge am-badge-secondary"></span>
-                    </p>
-                </div>
-                <div class="am-u-lg-12" id='palette'>Loading...</div>
-                <div class="am-u-lg-12" id='zoom-tool'>
-                    <button type="button" class="am-btn am-btn-primary am-radius" zoom=1>全部显示</button>
-                    <button type="button" class="am-btn am-btn-secondary am-radius" zoom=5>放大5x</button>
-                    <button type="button" class="am-btn am-btn-success am-radius" zoom=10>放大10x</button>
-                </div>
+                    <div class="am-u-lg-1">
+                        <p>
+                            还剩<br><span id='timeleft' class="am-badge am-badge-secondary"></span>
+                        </p>
+                    </div>
+                    <div class="am-u-lg-12" id='palette'>Loading...</div>
+                    <div class="am-u-lg-12" id='zoom-tool'>
+                        <button type="button" class="am-btn am-btn-primary am-radius" zoom=1>全部显示</button>
+                        <button type="button" class="am-btn am-btn-secondary am-radius" zoom=5>放大5x</button>
+                        <button type="button" class="am-btn am-btn-success am-radius" zoom=10>放大10x</button>
+                    </div>
 
-                <div class="am-u-lg-12">
-                    <p>前端来源：<a href="https://www.luogu.com.cn">洛谷</a></p>
+                    <div class="am-u-lg-12">
+                        <p>前端来源：<a href="https://www.luogu.com.cn">洛谷</a></p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
+    <div class="am-modal" tabindex="-1" id="login-modal">
+        <div class="am-modal-dialog">
+            <form id="login-form" class="am-form" onsubmit="return false">
+                <fieldset>
+                    <div class=" am-text-left">
+                        <div class="am-form-group">
+                            <label for="" class="am-icon-user">用户名</label>
+                            <input name="username" type="text" id="doc-vld-username" placeholder="用户名/邮箱地址"
+                                class="am-form-field" />
+                        </div>
 
-<!--在这里编写你的代码-->
+                        <div class="am-form-group">
+                            <label for="" class="am-icon-lock">密码</label>
+                            <input name="password" type="password" id="doc-vld-password" placeholder="密码"
+                                class="am-form-field" />
+                        </div>
+                    </div>
+                    <button class="am-btn am-btn-primary" type="submit">登录</button>
+                    <div>还没有账户？<a href="javascript:void(0);" id="register">注册一个</a></div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
 
-<!--[if (gte IE 9)|!(IE)]><!-->
-<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdn.bootcss.com/jqueryui/1.12.1/jquery-ui.min.js"></script>
-<!--<![endif]-->
-<!--[if lte IE 8 ]>
-<script src="https://libs.baidu.com/jquery/1.11.3/jquery.min.js"></script>
-<script src="https://cdn.staticfile.org/modernizr/2.8.3/modernizr.js"></script>
-<script src="assets/js/amazeui.ie8polyfill.min.js"></script>
-<![endif]-->
-<script>
-    let ctx = document.getElementById("mycanvas").getContext("2d");
-    const timeLimit = 10;
-    const H = 400;
-    const W = 800;
-    const colorList = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(170, 170, 170)', 'rgb(85, 85, 85)', 'rgb(254, 211, 199)', 'rgb(255, 196, 206)', 'rgb(250, 172, 142)', 'rgb(255, 139, 131)', 'rgb(244, 67, 54)', 'rgb(233, 30, 99)', 'rgb(226, 102, 158)', 'rgb(156, 39, 176)', 'rgb(103, 58, 183)', 'rgb(63, 81, 181)', 'rgb(0, 70, 112)', 'rgb(5, 113, 151)', 'rgb(33, 150, 243)', 'rgb(0, 188, 212)', 'rgb(59, 229, 219)', 'rgb(151, 253, 220)', 'rgb(22, 115, 0)', 'rgb(55, 169, 60)', 'rgb(137, 230, 66)', 'rgb(215, 255, 7)', 'rgb(255, 246, 209)', 'rgb(248, 203, 140)', 'rgb(255, 235, 59)', 'rgb(255, 193, 7)', 'rgb(255, 152, 0)', 'rgb(255, 87, 34)', 'rgb(184, 63, 39)', 'rgb(121, 85, 72)'];
-    const rgbList = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
-    let nowColor = 0x000000;
-    let scale = 1;
-    let dragged = 0;
-    let lastTime = 1577874127;
-    let nowInterval = 0;
+    <div class="am-modal" tabindex="-1" id="register-modal">
+        <div class="am-modal-dialog am-g">
+            <form id="login-form" class="am-form" onsubmit="return false" data-am-validator>
+                <fieldset>
+                    <div class="am-text-left">
+                        <div class="am-form-group">
+                            <label for="doc-vld-username" class="am-icon-user">用户名</label>
+                            <input name="username" type="text" id="doc-vld-username" minlength="3"
+                                placeholder="用户名（至少3个字符）" class="am-form-field" required />
+                        </div>
 
-    function update(y, x, color) {
-        if (dragged) {
-            dragged = 0;
-            return;
-        }
+                        <div class="am-form-group">
+                            <label for="doc-vld-email" class="am-icon-envelope">邮箱</label>
+                            <div class="am-g">
+                                <div class="am-u-sm-8">
+                                    <input name="email" type="text" id="doc-vld-email" minlength="3" placeholder="邮箱"
+                                        class="am-form-field" required />
+                                </div>
+                                <div class="am-u-sm-4">@bupt.edu.cn</div>
+                            </div>
+                        </div>
 
-        let r = parseInt(color.substr(0, 2), 16);
-        let g = parseInt(color.substr(2, 2), 16);
-        let b = parseInt(color.substr(4, 2), 16);
+                        <div class="am-form-group">
+                            <label for="captcha" class="am-icon-check">验证码</label>
+                            <div class="am-g">
+                                <div class="am-u-sm-8">
+                                    <input name="username" type="email" id="doc-vld-captcha" minlength="6"
+                                        placeholder="验证码" class="am-form-field" required />
+                                </div>
+                                <div class="am-u-sm-4">
+                                    <button class="am-btn am-btn-primary" id="send-captcha">发送验证码</button>
+                                </div>
+                            </div>
+                        </div>
 
-        ctx.fillStyle = "rgb(" + r + ", " + g + ", " + b + ")";
-        ctx.fillRect(x, y, 1, 1);
-    }
+                        <div class="am-form-group">
+                            <label for="" class="am-icon-lock">密码</label>
+                            <input name="password" type="password" id="doc-vld-password" minlength="6" placeholder="密码"
+                                class="am-form-field" required />
+                        </div>
+                    </div>
+                    <button class="am-btn am-btn-primary" type="submit">注册</button>
+                </fieldset>
+            </form>
+        </div>
+    </div>
 
-    function initpale() {
-        $('#palette').html('');
-        colorList.forEach(function (k, v) {
-            console.log(k, v);
-            $('#palette').append('<div class="paleitem" data-cid=' + v + '></div>');
-            $('[data-cid=' + v + ']').css('background', k);
-        });
-        zoom(1)
-    }
+    <!--在这里编写你的代码-->
 
-    binditem = function () {
-        $('.paleitem').removeClass("selected");
-        $(this).addClass("selected");
-        nowColor = $(this).attr('data-cid');
-    }
-    zoom = function (s) {
-        scale = s;
-        $('#mycanvas').width(800 * scale)
-        if (s == 1) {
-            $('#mycanvas').css('top', 0);
-            $('#mycanvas').css('left', 0);
-        }
-    }
-    $("[zoom]").click(function () {
-        zoom($(this).attr('zoom'));
-    });
-    initpale();
-    $('.paleitem').bind("click", binditem);
-    $('[data-cid=0]').addClass("selected");
-    $('#mycanvas').bind("click", function () {
-        if (new Date() < (lastTime + timeLimit) * 1000) {
-            alert("冷却时间未到，暂时不能涂色");
-            return;
-        }
-        var x = parseInt(event.offsetX / scale);
-        var y = parseInt(event.offsetY / scale);
+    <!--[if (gte IE 9)|!(IE)]><!-->
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.luogu.com.cn/js/amazeui.min.js"></script>
+    <!--<![endif]-->
+    <!--[if lte IE 8 ]>
+        <script src="https://libs.baidu.com/jquery/1.11.3/jquery.min.js"></script>
+        <script src="https://cdn.staticfile.org/modernizr/2.8.3/modernizr.js"></script>
+        <script src="assets/js/amazeui.ie8polyfill.min.js"></script>
+    <![endif]-->
+    <script>
+        let ctx = document.getElementById("mycanvas").getContext("2d");
+        const timeLimit = 10;
+        const H = 400;
+        const W = 800;
+        const colorList = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(170, 170, 170)', 'rgb(85, 85, 85)', 'rgb(254, 211, 199)', 'rgb(255, 196, 206)', 'rgb(250, 172, 142)', 'rgb(255, 139, 131)', 'rgb(244, 67, 54)', 'rgb(233, 30, 99)', 'rgb(226, 102, 158)', 'rgb(156, 39, 176)', 'rgb(103, 58, 183)', 'rgb(63, 81, 181)', 'rgb(0, 70, 112)', 'rgb(5, 113, 151)', 'rgb(33, 150, 243)', 'rgb(0, 188, 212)', 'rgb(59, 229, 219)', 'rgb(151, 253, 220)', 'rgb(22, 115, 0)', 'rgb(55, 169, 60)', 'rgb(137, 230, 66)', 'rgb(215, 255, 7)', 'rgb(255, 246, 209)', 'rgb(248, 203, 140)', 'rgb(255, 235, 59)', 'rgb(255, 193, 7)', 'rgb(255, 152, 0)', 'rgb(255, 87, 34)', 'rgb(184, 63, 39)', 'rgb(121, 85, 72)'];
+        const rgbList = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
+        let nowColor = 0x000000;
+        let scale = 1;
+        let dragged = 0;
+        let lastTime = 1577874127;
+        let nowInterval = 0;
 
-        $.post("/paintBoard/paint", JSON.stringify({
-            x: x,
-            y: y,
-            color: rgbList[nowColor]
-        }), function(resp) {
-            console.log(resp);
-            if (resp.status !== 200) {
-                alert(resp.data)
-            } else {
-                lastTime = (new Date()) / 1000;
-                getCountDown(lastTime + timeLimit);
-                update(y, x, rgbList[nowColor]);
-            }
-        });
-    })
-    $('#mycanvas').draggable({
-        cursor: "move",
-        stop: function () {
-            dragged = 1;
-        }
-    });
-    $('#mycanvas').bind("mousewheel", function (event, delta) {
-        var delta = event.originalEvent.deltaY;
-        var y = parseInt(event.offsetY / scale);
-        var x = parseInt(event.offsetX / scale);
-        console.log(event);
-        if (delta > 0) {
-            if (scale == 10)
-                zoom(5);
-            else if (scale == 5)
-                zoom(1);
-        } else {
-            if (scale == 1)
-                zoom(5);
-            else if (scale == 5)
-                zoom(10);
-        }
-        if (scale != 1) {
-            $('#mycanvas').css('top', -y * scale + 200);
-            $('#mycanvas').css('left', -x * scale + 400);
-        }
-        scale
-        return false;
-    });
-
-    function getCountDown(timestamp) {
-        clearInterval(nowInterval);
-        nowInterval = setInterval(function () {
-            var nowTime = new Date();
-            var endTime = new Date(timestamp * 1000);
-            var t = endTime.getTime() - nowTime.getTime();
-            if (t < 0) {
-                $("#timeleft").html("冷却时间到");
-                clearInterval(nowInterval);
+        function update(y, x, color) {
+            if (dragged) {
+                dragged = 0;
                 return;
             }
-            var hour = Math.floor(t / 1000 / 60 / 60 % 24);
-            var min = Math.floor(t / 1000 / 60 % 60);
-            var sec = Math.floor(t / 1000 % 60);
-            if (hour < 10)
-                hour = "0" + hour;
-            if (min < 10)
-                min = "0" + min;
-            if (sec < 10)
-                sec = "0" + sec;
-            var countDownTime = hour + ":" + min + ":" + sec;
-            $("#timeleft").html(countDownTime);
-        }, 1000);
-    }
 
-    getCountDown(lastTime + timeLimit);
+            let r = parseInt(color.substr(0, 2), 16);
+            let g = parseInt(color.substr(2, 2), 16);
+            let b = parseInt(color.substr(4, 2), 16);
 
-    function initialPaint() {
-        $.get("/paintBoard/board", function(resp) {
-            resp.split('\n').map(function(colorStr, x) {
-                colorStr.split("|").map(function(color, y) {
-                    //if(color !== '2') console.log(x, y, color);
-                    update(y, x, color);
-                });
-            });
-        });
-    }
-
-    var ws = null;
-    function connectWs() {
-        try {
-            ws = new WebSocket('${wsurl}/paintBoard/ws');
-        } catch (e) {
-            alert("无法连接追踪服务器");
-            return;
+            ctx.fillStyle = "rgb(" + r + ", " + g + ", " + b + ")";
+            ctx.fillRect(x, y, 1, 1);
         }
 
-        ws.onopen = function() {
-            var message = {
-                "type": "join_channel",
-                "channel": "paintboard",
-                "channel_param": ""
-            };
-            ws.send(JSON.stringify(message));
+        function initpale() {
+            $('#palette').html('');
+            colorList.forEach(function (k, v) {
+                $('#palette').append('<div class="paleitem" data-cid=' + v + '></div>');
+                $('[data-cid=' + v + ']').css('background', k);
+            });
+            zoom(1)
+        }
+
+        $.fn.serializeObject = function () {
+            var hasOwnProperty = Object.prototype.hasOwnProperty;
+            return this.serializeArray().reduce(function (data, pair) {
+                if (!hasOwnProperty.call(data, pair.name)) {
+                    data[pair.name] = pair.value;
+                }
+                return data;
+            }, {});
         };
 
-        ws.onmessage = function (event) {
-            var data = JSON.parse(event.data);
-            if(data.type === "paintboard_update") {
-                update(data.y, data.x, data.color);
-            } else {
-                initialPaint()
+        binditem = function () {
+            $('.paleitem').removeClass("selected");
+            $(this).addClass("selected");
+            nowColor = $(this).attr('data-cid');
+        }
+        zoom = function (s) {
+            scale = s;
+            $('#mycanvas').width(800 * scale)
+            if (s == 1) {
+                $('#mycanvas').css('top', 0);
+                $('#mycanvas').css('left', 0);
             }
-        };
-    }
+        }
+        $("[zoom]").click(function () {
+            zoom($(this).attr('zoom'));
+        });
+        initpale();
+        $('.paleitem').bind("click", binditem);
+        $('[data-cid=0]').addClass("selected");
+        $('#mycanvas').bind("click", function () {
+            // if (!$.AMUI.utils.cookie.get('username')) {
+            //     alert("请先登录");
+            //     return;
+            // }
+            if (new Date() < (lastTime + timeLimit) * 1000) {
+                alert("冷却时间未到，暂时不能涂色");
+                return;
+            }
+            var x = parseInt(event.offsetX / scale);
+            var y = parseInt(event.offsetY / scale);
 
-    connectWs();
-</script>
+            lastTime = (new Date()) / 1000;
+            getCountDown(lastTime + timeLimit);
+
+            $.post("/paintBoard/paint", JSON.stringify({
+                x: x,
+                y: y,
+                color: rgbList[nowColor]
+            }), function (resp) {
+                if (resp.status !== 200) {
+                    alert(resp.data);
+                } else {
+                    update(y, x, rgbList[nowColor]);
+                }
+            });
+        })
+        $('#mycanvas').draggable({
+            cursor: "move",
+            stop: function () {
+                dragged = 1;
+            }
+        });
+        $('#mycanvas').bind("mousewheel", function (event, delta) {
+            var delta = event.originalEvent.deltaY;
+            var y = parseInt(event.offsetY / scale);
+            var x = parseInt(event.offsetX / scale);
+            if (delta > 0) {
+                if (scale == 10)
+                    zoom(5);
+                else if (scale == 5)
+                    zoom(1);
+            } else {
+                if (scale == 1)
+                    zoom(5);
+                else if (scale == 5)
+                    zoom(10);
+            }
+            if (scale != 1) {
+                $('#mycanvas').css('top', -y * scale + 200);
+                $('#mycanvas').css('left', -x * scale + 400);
+            }
+            scale
+            return false;
+        });
+        $('#login-button').click(function () {
+            $('#login-modal').modal();
+        });
+        $('#login-form').submit(function () {
+            let data = JSON.stringify($('#login-form').serializeObject());
+            $.post('/paintBoard/login', data, function (resp) {
+                if (resp.status !== 200) {
+                    alert(resp.data);
+                } else {
+                    $.AMUI.utils.cookie.set('username', resp.data.username);
+                    $('#username').text(resp.data.username);
+                    $('#login-button').hide();
+                    $('#user-dropdown').show();
+                    $('#login-modal').modal('close');
+                }
+            })
+        })
+        $('#logout').click(function () {
+            $.AMUI.utils.cookie.unset('username');
+        });
+        $('#register').click(function () {
+            $('#login-modal').modal('close');
+            $('#register-modal').modal();
+        });
+
+        function getCountDown(timestamp) {
+            clearInterval(nowInterval);
+            nowInterval = setInterval(function () {
+                var nowTime = new Date();
+                var endTime = new Date(timestamp * 1000);
+                var t = endTime.getTime() - nowTime.getTime();
+                if (t < 0) {
+                    $("#timeleft").html("冷却时间到");
+                    clearInterval(nowInterval);
+                    return;
+                }
+                var hour = Math.floor(t / 1000 / 60 / 60 % 24);
+                var min = Math.floor(t / 1000 / 60 % 60);
+                var sec = Math.floor(t / 1000 % 60);
+                if (hour < 10)
+                    hour = "0" + hour;
+                if (min < 10)
+                    min = "0" + min;
+                if (sec < 10)
+                    sec = "0" + sec;
+                var countDownTime = hour + ":" + min + ":" + sec;
+                $("#timeleft").html(countDownTime);
+            }, 1000);
+        }
+
+        getCountDown(lastTime + timeLimit);
+
+        function initialPaint() {
+            $.get("/paintBoard/board", function (resp) {
+                resp.split('\n').map(function (colorStr, x) {
+                    colorStr.split("|").map(function (color, y) {
+                        update(y, x, color);
+                    });
+                });
+            });
+        }
+
+        var ws = null;
+        function connectWs() {
+            try {
+                ws = new WebSocket('${wsurl}/paintBoard/ws');
+            } catch (e) {
+                alert("无法连接追踪服务器");
+                return;
+            }
+
+            ws.onopen = function () {
+                var message = {
+                    "type": "join_channel",
+                    "channel": "paintboard",
+                    "channel_param": ""
+                };
+                ws.send(JSON.stringify(message));
+            };
+
+            ws.onmessage = function (event) {
+                var data = JSON.parse(event.data);
+                if (data.type === "paintboard_update") {
+                    update(data.y, data.x, data.color);
+                } else {
+                    initialPaint()
+                }
+            };
+        }
+
+        connectWs();
+        if ($.AMUI.utils.cookie.get('username')) {
+            $('#username').text($.AMUI.utils.cookie.get('username'));
+            $('#login-button').hide();
+        } else {
+            $('#user-dropdown').hide();
+        }
+    </script>
 
 
 </body>
+
 </html>

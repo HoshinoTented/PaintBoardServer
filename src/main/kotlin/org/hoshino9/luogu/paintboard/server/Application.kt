@@ -22,8 +22,9 @@ import java.io.File
 import java.util.*
 
 data class PaintRequest(val x: Int, val y: Int, val color: String)
-data class User(val _id: Id<User>, val username: String, val password: String)
+data class User(val _id: Id<User>?, val username: String, val email: String, val password: String)
 data class UserSession(val id: String, val username: String, val time: Long): Principal
+data class RegisterSession(val email: String, val captcha: String, val time: Long): Principal
 data class Paintboard(val name: String, val text: String)
 class RequestException(errorMessage: String) : Exception(errorMessage)
 object Unknown
@@ -87,9 +88,11 @@ fun main() {
         install(Sessions) {
             cookie<UserSession>("user_session") {
                 cookie.path = "/"
-                transform(SessionTransportTransformerMessageAuthentication(
-                    hex("a5c117cf86455c73"), "HmacSHA256"
-                ))
+                directorySessionStorage(File(".sessions"), cached = true)
+            }
+            cookie<RegisterSession>("register_session") {
+                cookie.path = "/"
+                transform(SessionTransportTransformerEncrypt(hex("a5c117cf86455c739fac611ac8e9be08"), hex("4beb5000361c2dad")))
             }
         }
         install(Authentication) {

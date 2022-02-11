@@ -57,7 +57,7 @@ fun Routing.board() {
                 val req = Gson().fromJson(body, PaintRequest::class.java)
                 val session = call.principal<UserSession>()
 
-                if (System.currentTimeMillis() - (session?.time ?: 0) <= delay) throw RequestException("冷却时间未到")
+                if (System.currentTimeMillis() - (session?.time ?: 0) <= delay) throw RequestException("冷却时间未到，暂时不能涂色")
                 if (req.x !in 0 until 800 || req.y !in 0 until 400) throw RequestException("坐标越界")
                 if (req.color.toInt(16) !in 0x000000..0xFFFFFF) throw RequestException("颜色越界")
 

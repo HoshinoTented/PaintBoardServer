@@ -1,9 +1,11 @@
 package org.hoshino9.luogu.paintboard.server
 
+import com.aliyun.dm20151123.Client
+import com.aliyun.dm20151123.models.SingleSendMailRequest
+import com.aliyun.teaopenapi.models.Config
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import io.ktor.application.*
-import io.ktor.client.utils.EmptyContent.status
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -13,7 +15,6 @@ import io.ktor.util.pipeline.*
 import org.litote.kmongo.eq
 import org.litote.kmongo.newId
 import org.litote.kmongo.or
-import java.security.MessageDigest
 
 suspend fun PipelineContext<Unit, ApplicationCall>.catchAndRespond(
     block: suspend PipelineContext<Unit, ApplicationCall>.() -> Unit
@@ -29,25 +30,6 @@ suspend fun PipelineContext<Unit, ApplicationCall>.catchAndRespond(
     }
 }
 
-fun toHexString(byteArray: ByteArray) = with(StringBuilder()) {
-    byteArray.forEach {
-        val hex = it.toInt() and (0xFF)
-        val hexStr = Integer.toHexString(hex)
-        if (hexStr.length == 1) append("0").append(hexStr)
-        else append(hexStr)
-    }
-    toString()
-}
-
-fun getSalt(length: Int, pattern: String = "0123456789abcdef") = StringBuilder()
-    .apply { (1..length).onEach { append(pattern.random()) } }.toString()
-
-fun encrypt(s: String, salt: String = getSalt(16)) = with(StringBuilder()) {
-    val md5 = toHexString(MessageDigest.getInstance("MD5").digest((s + salt).toByteArray()))
-    (0 until 16).onEach { i -> append(salt[i]).append(md5[i * 2]).append(md5[i * 2 + 1]) }
-    toString()
-}
-
 suspend fun userAuth(user: User): User? {
     val query = mongo.getCollection<User>()
         .findOne(or(User::username eq user.username, User::email eq user.email)) ?: return null
@@ -56,15 +38,29 @@ suspend fun userAuth(user: User): User? {
     return if (query.password == encrypt(user.password, salt.toString())) query else null
 }
 
-suspend fun sendCaptcha(email: String, captcha: String) {
-    println(captcha) // TODO send captcha with email
+fun sendCaptcha(email: String, captcha: String) {
+    val config = Config()
+        .setAccessKeyId(config.getProperty("dmid"))
+        .setAccessKeySecret(config.getProperty("dmsecret"))
+    config.endpoint = "dm.aliyuncs.com"
+
+    val client = Client(config)
+    val req = SingleSendMailRequest()
+        .setAccountName("aliyundm@zxoj.top")
+        .setAddressType(1)
+        .setReplyToAddress(false)
+        .setSubject("周行算协冬日画板验证码")
+        .setToAddress(email)
+        .setFromAlias("周行算协")
+        .setTextBody(captcha)
+
+    client.singleSendMail(req)
 }
 
 fun Routing.loginPage() {
     post("/paintBoard/login") {
         catchAndRespond {
-            val body = call.receive<String>()
-            val req = Gson().fromJson(body, User::class.java)
+            val req = call.receive<User>()
             val user = userAuth(req)
             val session = call.sessions.get<UserSession>()
 
@@ -105,7 +101,7 @@ fun Routing.loginPage() {
 
             if (query != null) { throw RequestException("该邮箱已被注册") }
             sendCaptcha(email, capt)
-            call.sessions.set<RegisterSession>(RegisterSession(email, capt, System.currentTimeMillis()))
+            call.sessions.set(RegisterSession(email, capt, System.currentTimeMillis()))
             call.respond(HttpStatusCode.OK)
         }
     }
@@ -128,7 +124,7 @@ fun Routing.loginPage() {
         catchAndRespond {
             val body = call.receive<String>()
             val req = Gson().fromJson(body, User::class.java)
-            val capt = Gson().fromJson(body, JsonObject::class.java).get("captcha").getAsString()
+            val capt = Gson().fromJson(body, JsonObject::class.java).get("captcha").asString
             val session = call.sessions.get<RegisterSession>() ?: throw RequestException("请先获取验证码")
             val query = mongo.getCollection<User>()
                 .findOne(or(User::username eq req.username, User::email eq req.email))

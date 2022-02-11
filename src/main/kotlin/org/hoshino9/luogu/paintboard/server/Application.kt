@@ -3,6 +3,8 @@ package org.hoshino9.luogu.paintboard.server
 import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.auth.*
+import io.ktor.features.*
+import io.ktor.gson.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
@@ -23,8 +25,8 @@ import java.util.*
 
 data class PaintRequest(val x: Int, val y: Int, val color: String)
 data class User(val _id: Id<User>?, val username: String, val email: String, val password: String)
-data class UserSession(val id: String, val username: String, val time: Long): Principal
-data class RegisterSession(val email: String, val captcha: String, val time: Long): Principal
+data class UserSession(val id: String, val username: String, val time: Long) : Principal
+data class RegisterSession(val email: String, val captcha: String, val time: Long) : Principal
 data class Paintboard(val name: String, val text: String)
 class RequestException(errorMessage: String) : Exception(errorMessage)
 object Unknown
@@ -85,6 +87,10 @@ fun main() {
         }
 
         install(WebSockets)
+        install(ContentNegotiation) {
+            gson {
+            }
+        }
         install(Sessions) {
             cookie<UserSession>("user_session") {
                 cookie.path = "/"
@@ -92,7 +98,12 @@ fun main() {
             }
             cookie<RegisterSession>("register_session") {
                 cookie.path = "/"
-                transform(SessionTransportTransformerEncrypt(hex("a5c117cf86455c739fac611ac8e9be08"), hex("4beb5000361c2dad")))
+                transform(
+                    SessionTransportTransformerEncrypt(
+                        hex(config.getProperty("encryptkey")),
+                        hex(config.getProperty("signkey"))
+                    )
+                )
             }
         }
         install(Authentication) {

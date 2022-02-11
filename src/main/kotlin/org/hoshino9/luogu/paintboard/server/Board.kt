@@ -1,12 +1,10 @@
 package org.hoshino9.luogu.paintboard.server
 
-import com.google.gson.Gson
-import io.ktor.application.call
+import io.ktor.application.*
 import io.ktor.auth.*
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.request.receive
-import io.ktor.response.respondText
+import io.ktor.http.*
+import io.ktor.request.*
+import io.ktor.response.*
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
@@ -53,8 +51,7 @@ fun Routing.board() {
     authenticate("auth-session"){
         post("/paintBoard/paint") {
             try {
-                val body = call.receive<String>()
-                val req = Gson().fromJson(body, PaintRequest::class.java)
+                val req = call.receive<PaintRequest>()
                 val session = call.principal<UserSession>()
 
                 if (System.currentTimeMillis() - (session?.time ?: 0) <= delay) throw RequestException("冷却时间未到，暂时不能涂色")

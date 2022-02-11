@@ -30,6 +30,9 @@ dependencies {
     implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
     implementation("io.ktor:ktor-websockets:$ktorVersion")
     implementation("io.ktor:ktor-client-websockets:$ktorVersion")
+    implementation("io.ktor:ktor-gson:$ktorVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("com.aliyun:dm20151123:1.0.0")
     implementation("org.litote.kmongo:kmongo-coroutine:4.4.0")
 }
 

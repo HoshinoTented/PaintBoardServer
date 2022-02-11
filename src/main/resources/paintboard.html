@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="https://cdn.luogu.com.cn/css/amazeui.min.css">
     <style>
         .main-body {
-            padding: 51px 50px 20px;
+            padding-top: 51px;
+            padding-bottom: 20px;
             color: #7f8c8d;
         }
 
@@ -88,27 +89,35 @@
             <div class="am-u-lg-11 am-u-lg-centered" id="canvas-box">
                 <canvas width=800 height=400 id='mycanvas'>
             </div>
+        </div>
+    </div>
+    <div class="am-g">
+        <div class="am-u-lg-6">
+            <div id='palette'>Loading...</div>
+        </div>
+        <div class="am-u-lg-2">
+            <div class="am-vertical-align" style="height: 92.52px;text-align:center;">
+                <div class="am-vertical-align-middle" id="custom-color-box">
+                    <input type="color" id="custom-color" value="#ffffff">
+                    <br>
+                    <label for="custom-color">自定义颜色</label>
+                </div>
             </div>
         </div>
-        <div class="am-g">
-            <div class="am-u-lg-7">
-                <div id='palette'>Loading...</div>
-            </div>
-            <div class="am-u-lg-5">
-                <button type="button" class="am-btn am-btn-primary am-radius" zoom=1>全部显示</button>
-                <button type="button" class="am-btn am-btn-secondary am-radius" zoom=5>放大5x</button>
-                <button type="button" class="am-btn am-btn-success am-radius" zoom=10>放大10x</button>
-            </div>
-            <div class="am-u-lg-5">
-                <p>
-                    还剩 <span id='timeleft' class="am-badge am-badge-secondary"></span>
-                </p>
-            </div>
+        <div class="am-u-lg-4">
+            <button type="button" class="am-btn am-btn-primary am-radius" zoom=1>全部显示</button>
+            <button type="button" class="am-btn am-btn-secondary am-radius" zoom=5>放大5x</button>
+            <button type="button" class="am-btn am-btn-success am-radius" zoom=10>放大10x</button>
         </div>
-        <div class="description">
-            <p>操作说明：左键绘制，右键拖动画板，滚轮缩放</p>
-            <p>前端来源：<a href="https://www.luogu.com.cn">洛谷</a></p>
+        <div class="am-u-lg-4">
+            <p>
+                还剩 <span id='timeleft' class="am-badge am-badge-secondary"></span>
+            </p>
         </div>
+    </div>
+    <div class="description">
+        <p>操作说明：左键绘制，右键拖动画板，滚轮缩放</p>
+        <p>前端来源：<a href="https://www.luogu.com.cn">洛谷</a></p>
     </div>
 </div>
 
@@ -136,7 +145,6 @@
     dragged = 0;
     lasttime = 1577874127;
     timelimit = 0;
-    colorlist = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(170, 170, 170)', 'rgb(85, 85, 85)', 'rgb(254, 211, 199)', 'rgb(255, 196, 206)', 'rgb(250, 172, 142)', 'rgb(255, 139, 131)', 'rgb(244, 67, 54)', 'rgb(233, 30, 99)', 'rgb(226, 102, 158)', 'rgb(156, 39, 176)', 'rgb(103, 58, 183)', 'rgb(63, 81, 181)', 'rgb(0, 70, 112)', 'rgb(5, 113, 151)', 'rgb(33, 150, 243)', 'rgb(0, 188, 212)', 'rgb(59, 229, 219)', 'rgb(151, 253, 220)', 'rgb(22, 115, 0)', 'rgb(55, 169, 60)', 'rgb(137, 230, 66)', 'rgb(215, 255, 7)', 'rgb(255, 246, 209)', 'rgb(248, 203, 140)', 'rgb(255, 235, 59)', 'rgb(255, 193, 7)', 'rgb(255, 152, 0)', 'rgb(255, 87, 34)', 'rgb(184, 63, 39)', 'rgb(121, 85, 72)'];
     rgblist = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
     nowintevel = 0;
 
@@ -156,19 +164,36 @@
 
     function initpale() {
         $('#palette').html('');
-        colorlist.forEach(function (k, v) {
-            console.log(k, v);
-            $('#palette').append('<div class="paleitem" data-cid=' + v + '></div>');
-            $('[data-cid=' + v + ']').css('background', k);
+        rgblist.forEach(function (item) {
+            let newdiv = $('<div class="paleitem" data-cid=' + item + '></div>');
+            newdiv.css('background', '#' + item);
+            $('#palette').append(newdiv);
         });
         zoom(1)
     }
 
     binditem = function () {
         $('.paleitem').removeClass("selected");
+        $('#custom-color-box').removeClass("selected");
         $(this).addClass("selected");
         nowcolor = $(this).attr('data-cid');
+        console.log(nowcolor);
     }
+
+    $('#custom-color-box').bind("click", bindCustomColor);
+    $('#custom-color').bind("input", bindCustomColor);
+    
+
+    function bindCustomColor(e) {
+        $('.paleitem').removeClass("selected");
+        $('#custom-color-box').addClass("selected");
+        if(e.originalEvent.target.value) {
+            CustomColor = e.originalEvent.target.value.substr(1);
+        }
+        nowcolor = CustomColor;
+        console.log(nowcolor);
+    }
+
     zoom = function (s) {
         scale = s;
         $('#mycanvas').width(800 * scale)
@@ -191,12 +216,12 @@
         }
         var x = parseInt(event.offsetX / scale);
         var y = parseInt(event.offsetY / scale);
-        update(y, x, rgblist[nowcolor]);
+        update(y, x, nowcolor);
 
         $.post("/paintBoard/paint", JSON.stringify({
             x: x,
             y: y,
-            color: rgblist[nowcolor]
+            color: nowcolor
         }), function(resp) {
             if (resp.status !== 200) {
                 alert(resp.data)

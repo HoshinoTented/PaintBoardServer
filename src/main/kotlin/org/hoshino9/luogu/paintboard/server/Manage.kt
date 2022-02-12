@@ -49,6 +49,8 @@ fun load(id: Int) {
             .find().descendingSort(PaintboardRecord::date).first()
         if (record == null) {
             save(id)
+            mongo.getCollection<PaintboardRecord>("paintboard$id")
+                .createIndex("{date: 1}")
         } else {
             boards[id].text = record.text
         }

@@ -10,6 +10,7 @@ import io.ktor.routing.post
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.runBlocking
 import org.litote.kmongo.*
+import java.util.*
 
 suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: () -> Unit) {
     val body = call.receive<String>().parseJson().asJsonObject
@@ -24,22 +25,21 @@ suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: () -> Unit)
 
 fun save() {
     runBlocking {
-        mongo.getCollection<Paintboard>()
-            .findOneAndUpdate(
-                Paintboard::name eq "paintboard",
-                setValue(Paintboard::text, board.text)
-            ) ?: runBlocking {
-                mongo.getCollection<Paintboard>()
-                    .insertOne(Paintboard("paintboard", board.text))
-            }
+        println("Saving board...")
+        val record = PaintboardRecord(Date(), 800, 400, board.text)
+        mongo.getCollection<PaintboardRecord>("paintboard").insertOne(record)
     }
 }
 
 fun load() {
     runBlocking {
-        board.text = mongo.getCollection<Paintboard>()
-            .findOne(Paintboard::name eq "paintboard")?.text
-            ?: throw IllegalStateException("No such document: paintboard")
+        val record = mongo.getCollection<PaintboardRecord>("paintboard")
+            .find().descendingSort(PaintboardRecord::date).first()
+        if (record == null) {
+            save()
+        } else {
+            board.text = record.text
+        }
     }
 }
 

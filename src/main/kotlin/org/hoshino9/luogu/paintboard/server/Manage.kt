@@ -27,17 +27,17 @@ fun save() {
         mongo.getCollection<Paintboard>()
             .findOneAndUpdate(
                 Paintboard::name eq "paintboard",
-                setValue(Paintboard::text, boardText)
+                setValue(Paintboard::text, board.text)
             ) ?: runBlocking {
                 mongo.getCollection<Paintboard>()
-                    .insertOne(Paintboard("paintboard", boardText))
+                    .insertOne(Paintboard("paintboard", board.text))
             }
     }
 }
 
 fun load() {
     runBlocking {
-        boardText = mongo.getCollection<Paintboard>()
+        board.text = mongo.getCollection<Paintboard>()
             .findOne(Paintboard::name eq "paintboard")?.text
             ?: throw IllegalStateException("No such document: paintboard")
     }

@@ -11,56 +11,64 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.sessions.*
 import kotlinx.coroutines.launch
-import java.util.*
 
-val board: MutableList<MutableList<Int>> = Collections.synchronizedList(
-    ArrayList<MutableList<Int>>().apply {
-        repeat(800) {
-            ArrayList<Int>().apply {
-                repeat(400) {
-                    add(0x000000)
+class Board {
+    private val _pixel = Array(800) { IntArray(600) }
+    private var _text: String? = null
+    operator fun get(x: Int, y: Int): Int {
+        return _pixel[x][y]
+    }
+
+    operator fun set(x: Int, y: Int, value: Int) {
+        _pixel[x][y] = value
+        _text = null
+    }
+
+    var text: String
+        get() {
+            val txt = _text
+            if (txt != null) {
+                return txt
+            }
+            val newtxt = buildString {
+                _pixel.forEach { line ->
+                    line.joinToString(separator = "|") { "%06X".format(it) }.run(::appendLine)
                 }
-            }.let {
-                Collections.synchronizedList(it).run(::add)
+            }
+            _text = newtxt
+            return newtxt
+        }
+        set(value) {
+            _text = value
+            value.lines().filter { it.isNotBlank() }.forEachIndexed { x, line ->
+                line.split('|').forEachIndexed { y, color ->
+                    _pixel[x][y] = color.toInt(16)
+                }
             }
         }
-    }
-)
+}
 
-var boardText: String
-    get() {
-        return buildString {
-            board.forEach { line ->
-                line.joinToString(separator = "|") { "%06X".format(it) }.run(::appendLine)
-            }
-        }
-    }
-
-    set(value) {
-        value.lines().filter { it.isNotBlank() }.forEachIndexed { x, line ->
-            line.split('|').forEachIndexed { y, color ->
-                board[x][y] = color.toInt(16)
-            }
-        }
-    }
+val board = Board()
 
 fun Routing.board() {
     get("/paintBoard/board") {
-        call.respondText(boardText)
+        call.respondText(board.text)
     }
 
-    authenticate("auth-session"){
+    authenticate("auth-session") {
         post("/paintBoard/paint") {
             try {
                 val body = call.receive<String>()
                 val req = Gson().fromJson(body, PaintRequest::class.java)
                 val session = call.principal<UserSession>()
 
-                if (System.currentTimeMillis() - (session?.time ?: 0) <= delay) throw RequestException("冷却时间未到，暂时不能涂色")
+                if (System.currentTimeMillis() - (session?.time
+                        ?: 0) <= delay
+                ) throw RequestException("冷却时间未到，暂时不能涂色")
                 if (req.x !in 0 until 800 || req.y !in 0 until 400) throw RequestException("坐标越界")
                 if (req.color.toInt(16) !in 0x000000..0xFFFFFF) throw RequestException("颜色越界")
 
-                board[req.x][req.y] = req.color.toInt(16)
+                board[req.x, req.y] = req.color.toInt(16)
                 call.sessions.set(session?.copy(time = System.currentTimeMillis()))
                 call.respondText(
                     "{\"status\": 200}",

@@ -96,12 +96,14 @@ fun Routing.loginPage() {
     get("/paintBoard/captcha") {
         catchAndRespond {
             val email = call.parameters["email"] ?: throw RequestException("请输入邮箱")
-            val capt = getSalt(6,"0123456789")
             val query = mongo.getCollection<User>().findOne(User::email eq email)
 
             if (query != null) { throw RequestException("该邮箱已被注册") }
-            sendCaptcha(email, capt)
-            call.sessions.set(RegisterSession(email, capt, System.currentTimeMillis()))
+            if (config.getProperty("captcha").toBoolean()) {
+                val capt = getSalt(6,"0123456789")
+                sendCaptcha(email, capt)
+                call.sessions.set(RegisterSession(email, capt, System.currentTimeMillis()))
+            }
             call.respond(HttpStatusCode.OK)
         }
     }
@@ -124,14 +126,16 @@ fun Routing.loginPage() {
         catchAndRespond {
             val body = call.receive<String>()
             val req = Gson().fromJson(body, User::class.java)
-            val capt = Gson().fromJson(body, JsonObject::class.java).get("captcha").asString
-            val session = call.sessions.get<RegisterSession>() ?: throw RequestException("请先获取验证码")
             val query = mongo.getCollection<User>()
                 .findOne(or(User::username eq req.username, User::email eq req.email))
 
-            if (query != null) { throw RequestException("该用户名或邮箱已被注册") }
-            if (capt != session.captcha || req.email != session.email ||
-                System.currentTimeMillis() - session.time > 5 * 60 * 1000) throw RequestException("验证码无效")
+            if (config.getProperty("captcha").toBoolean()) {
+                val capt = Gson().fromJson(body, JsonObject::class.java).get("captcha").asString
+                val session = call.sessions.get<RegisterSession>() ?: throw RequestException("请先获取验证码")
+                if (query != null) { throw RequestException("该用户名或邮箱已被注册") }
+                if (capt != session.captcha || req.email != session.email ||
+                    System.currentTimeMillis() - session.time > 5 * 60 * 1000) throw RequestException("验证码无效")
+            }
 
             mongo.getCollection<User>().insertOne(User(newId(), req.username, req.email, encrypt(req.password)))
 

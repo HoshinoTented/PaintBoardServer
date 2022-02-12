@@ -14,8 +14,10 @@ import io.ktor.server.netty.*
 import io.ktor.sessions.*
 import io.ktor.util.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.litote.kmongo.Id
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.coroutine.coroutine
@@ -27,7 +29,7 @@ data class PaintRequest(val x: Int, val y: Int, val color: String)
 data class User(val _id: Id<User>?, val username: String, val email: String, val password: String)
 data class UserSession(val id: String, val username: String, val time: Long) : Principal
 data class RegisterSession(val email: String, val captcha: String, val time: Long) : Principal
-data class PaintboardRecord(val date: Date,val width:Int,val height:Int, val text: String)
+data class PaintboardRecord(val date: Date, val width: Int, val height: Int, val text: String)
 class RequestException(errorMessage: String) : Exception(errorMessage)
 object Unknown
 
@@ -71,13 +73,17 @@ fun main() {
 
     delay = (config.getProperty("delay")?.toLong() ?: 0) * 1000
 
-    loadAll()
+    runBlocking {
+        loadAll()
+    }
 
     embeddedServer(Netty, 8080) {
         launch {
             while (true) {
                 delay(5 * 60 * 1000)
-                saveAll()
+                launch {
+                    saveAll()
+                }
             }
         }
 

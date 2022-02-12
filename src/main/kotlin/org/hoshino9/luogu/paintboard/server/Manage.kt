@@ -25,20 +25,24 @@ suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: () -> Unit)
 
 fun save() {
     runBlocking {
-        println("Saving board...")
-        val record = PaintboardRecord(Date(), 800, 400, board.text)
-        mongo.getCollection<PaintboardRecord>("paintboard").insertOne(record)
+        println("Saving boards...")
+        for((id, board) in boards.withIndex()) {
+            val record = PaintboardRecord(Date(), 800, 400, board.text)
+            mongo.getCollection<PaintboardRecord>("paintboard$id").insertOne(record)
+        }
     }
 }
 
 fun load() {
     runBlocking {
-        val record = mongo.getCollection<PaintboardRecord>("paintboard")
-            .find().descendingSort(PaintboardRecord::date).first()
-        if (record == null) {
-            save()
-        } else {
-            board.text = record.text
+        for((id, board) in boards.withIndex()) {
+            val record = mongo.getCollection<PaintboardRecord>("paintboard$id")
+                .find().descendingSort(PaintboardRecord::date).first()
+            if (record == null) {
+                save()
+            } else {
+                board.text = record.text
+            }
         }
     }
 }

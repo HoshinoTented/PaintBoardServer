@@ -45,16 +45,27 @@ class Board {
         }
 }
 
-val board = Board()
+val boardNum = config.getProperty("boardnum").toInt()
+val boards = Array(boardNum) { Board() }
 
 fun Routing.board() {
     get("/paintBoard/board") {
-        call.respondText(board.text)
+        try {
+            val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")
+            call.respondText(boards[id].text)
+        } catch (e: Throwable) {
+            call.respondText(
+                "{\"status\": 400,\"data\": \"${e.message}\"}",
+                ContentType.Application.Json,
+                HttpStatusCode.OK
+            )
+        }
     }
 
     authenticate("auth-session") {
         post("/paintBoard/paint") {
             try {
+                val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")
                 val body = call.receive<String>()
                 val req = Gson().fromJson(body, PaintRequest::class.java)
                 val session = call.principal<UserSession>()
@@ -65,7 +76,7 @@ fun Routing.board() {
                 if (req.x !in 0 until 800 || req.y !in 0 until 400) throw RequestException("坐标越界")
                 if (req.color.toInt(16) !in 0x000000..0xFFFFFF) throw RequestException("颜色越界")
 
-                board[req.x, req.y] = req.color.toInt(16)
+                boards[id][req.x, req.y] = req.color.toInt(16)
                 call.sessions.set(session?.copy(time = System.currentTimeMillis()))
                 call.respondText(
                     "{\"status\": 200}",

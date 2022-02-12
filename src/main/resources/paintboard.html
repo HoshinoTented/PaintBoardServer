@@ -311,7 +311,7 @@
             lastTime = (new Date()) / 1000;
             getCountDown(lastTime + timeLimit);
 
-            $.post("/paintBoard/paint", JSON.stringify({
+            $.post("/paintBoard/paint?id=0", JSON.stringify({
                 x: x,
                 y: y,
                 color: nowColor
@@ -470,7 +470,7 @@
         getCountDown(lastTime + timeLimit);
 
         function initialPaint() {
-            $.get("/paintBoard/board", function (resp) {
+            $.get("/paintBoard/board?id=0", function (resp) {
                 resp.split(';').map(function (colorStr, x) {
                     colorStr.split(",").map(function (color, y) {
                         update(y, x, color);

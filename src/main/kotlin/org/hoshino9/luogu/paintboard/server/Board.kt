@@ -30,18 +30,15 @@ class Board {
             if (txt != null) {
                 return txt
             }
-            val newtxt = buildString {
-                _pixel.forEach { line ->
-                    line.joinToString(separator = "|") { "%06X".format(it) }.run(::appendLine)
-                }
-            }
-            _text = newtxt
-            return newtxt
+            val newTxt =
+                _pixel.joinToString(separator = ";") { line -> line.joinToString(separator = ",") { "%06x".format(it) } }
+            _text = newTxt
+            return newTxt
         }
         set(value) {
             _text = value
-            value.lines().filter { it.isNotBlank() }.forEachIndexed { x, line ->
-                line.split('|').forEachIndexed { y, color ->
+            value.split(';').forEachIndexed { x, line ->
+                line.split(',').forEachIndexed { y, color ->
                     _pixel[x][y] = color.toInt(16)
                 }
             }

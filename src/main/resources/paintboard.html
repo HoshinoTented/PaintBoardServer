@@ -428,7 +428,18 @@
 
         })
         $('#register-form').submit(function () {
-
+            let data = JSON.stringify($('#register-form').serializeObject());
+            $.post('/paintBoard/register', data, function (resp) {
+                if (resp.status !== 200) {
+                    alert(resp.data);
+                } else {
+                    $.AMUI.utils.cookie.set('username', resp.data.username);
+                    $('#username').text(resp.data.username);
+                    $('#login-button').hide();
+                    $('#user-dropdown').show();
+                    $('#login-modal').modal('close');
+                }
+            })
         })
 
         function getCountDown(timestamp) {
@@ -460,8 +471,8 @@
 
         function initialPaint() {
             $.get("/paintBoard/board", function (resp) {
-                resp.split('\n').map(function (colorStr, x) {
-                    colorStr.split("|").map(function (color, y) {
+                resp.split(';').map(function (colorStr, x) {
+                    colorStr.split(",").map(function (color, y) {
                         update(y, x, color);
                     });
                 });

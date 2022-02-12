@@ -60,7 +60,8 @@ fun sendCaptcha(email: String, captcha: String) {
 fun Routing.loginPage() {
     post("/paintBoard/login") {
         catchAndRespond {
-            val req = call.receive<User>()
+            val body = call.receive<String>()
+            val req = Gson().fromJson(body, User::class.java)
             val user = userAuth(req)
             val session = call.sessions.get<UserSession>()
 

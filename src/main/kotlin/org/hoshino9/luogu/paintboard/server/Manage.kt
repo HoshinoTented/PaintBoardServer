@@ -23,40 +23,58 @@ suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: () -> Unit)
     } else call.respond(HttpStatusCode.Forbidden)
 }
 
-fun save() {
+fun saveAll() {
+    for (id in boards.indices) {
+        save(id)
+    }
+}
+
+fun save(id: Int) {
     runBlocking {
-        println("Saving boards...")
-        for((id, board) in boards.withIndex()) {
-            val record = PaintboardRecord(Date(), 800, 400, board.text)
-            mongo.getCollection<PaintboardRecord>("paintboard$id").insertOne(record)
+        println("Saving board $id...")
+        val record = PaintboardRecord(Date(), 800, 400, boards[id].text)
+        mongo.getCollection<PaintboardRecord>("paintboard$id").insertOne(record)
+    }
+}
+
+fun loadAll() {
+    for (id in boards.indices) {
+        load(id)
+    }
+}
+
+fun load(id: Int) {
+    runBlocking {
+        val record = mongo.getCollection<PaintboardRecord>("paintboard$id")
+            .find().descendingSort(PaintboardRecord::date).first()
+        if (record == null) {
+            save(id)
+        } else {
+            boards[id].text = record.text
         }
     }
 }
 
-fun load() {
+fun rollback(id: Int, date: Date) {
     runBlocking {
-        for((id, board) in boards.withIndex()) {
-            val record = mongo.getCollection<PaintboardRecord>("paintboard$id")
-                .find().descendingSort(PaintboardRecord::date).first()
-            if (record == null) {
-                save()
-            } else {
-                board.text = record.text
-            }
-        }
+        mongo.getCollection<PaintboardRecord>("paintboard$id")
+            .deleteMany(
+                PaintboardRecord::date gt date
+            )
+        load(id)
     }
 }
 
 fun Routing.managePage() {
     post("/paintBoard/save") {
         manageRequest {
-            save()
+            saveAll()
         }
     }
 
     post("/paintBoard/load") {
         manageRequest {
-            load()
+            loadAll()
         }
     }
 }

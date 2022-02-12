@@ -71,17 +71,13 @@ fun main() {
 
     delay = (config.getProperty("delay")?.toLong() ?: 0) * 1000
 
-    try {
-        load()
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
+    loadAll()
 
     embeddedServer(Netty, 8080) {
         launch {
             while (true) {
-                save()
                 delay(5 * 60 * 1000)
+                saveAll()
             }
         }
 

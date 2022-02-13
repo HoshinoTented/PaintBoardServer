@@ -14,12 +14,23 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.litote.kmongo.*
 import java.awt.Paint
+import java.awt.image.BufferedImage
+import java.io.File
+import javax.imageio.*
 import java.util.*
 
 class Board() {
     private val data = Array(800) { IntArray(400) }
 
-    constructor(records: List<PaintRecord>) : this() {
+    constructor(initImage: BufferedImage?, records: List<PaintRecord>) : this() {
+        if (initImage != null) {
+            if (initImage.width < 800 || initImage.height < 400) throw Exception("The image is too small")
+            for (x in 0..800 - 1) {
+                for (y in 0..400 - 1) {
+                    data[x][y] = initImage.getRGB(x, y) and 0xffffff
+                }
+            }
+        }
         for (record in records) {
             data[record.x][record.y] = record.color
         }
@@ -39,8 +50,18 @@ class Board() {
 }
 
 val boardNum = config.getProperty("boardNum").toInt()
-var boards = Array(boardNum) { Board() }
+val boards = Array(boardNum) { Board() }
 val stringCache = Array<String?>(boardNum) { null }
+
+val initImages = Array(boardNum) { id -> tryReadImage("initImage/$id.jpg") }
+
+fun tryReadImage(path: String): BufferedImage? {
+    try {
+        return ImageIO.read(File(path))
+    } catch (e: Throwable) {
+        return null
+    }
+}
 
 suspend fun initDB() {
     for (id in 0..boardNum - 1) {
@@ -64,7 +85,7 @@ suspend fun readBoard(id: Int, time: Long): Board {
     val recordList = mongo.getCollection<PaintRecord>("paintboard$id")
         .find(PaintRecord::time lte time)
         .toList()
-    return Board(recordList)
+    return Board(initImages[id], recordList)
 }
 
 suspend fun rollback(id: Int, time: Long) {

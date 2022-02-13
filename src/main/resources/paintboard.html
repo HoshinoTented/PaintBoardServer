@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://cdn.luogu.com.cn/css/amazeui.min.css">
     <style>
         .main-body {
-            padding-top: 51px;
             padding-bottom: 20px;
             color: #7f8c8d;
         }
@@ -58,8 +57,16 @@
 
         #mycanvas {
             position: relative;
-            background: #000000;
             image-rendering: pixelated;
+        }
+        
+        .loading{
+            color:#ffffff;
+            font-size: 200%;
+            top:calc(200px - 0.5em);
+            width: 100%;
+            text-align: center;
+            position:absolute;
         }
 
         .description {
@@ -95,6 +102,7 @@
         <div class="am-u-lg-12">
             <div class="am-g">
                 <div class="am-u-lg-11 am-u-lg-centered" id="canvas-box">
+                    <div class="loading">加载中...</div>
                     <canvas width=800 height=400 id='mycanvas'> </canvas>
                 </div>
             </div>
@@ -508,7 +516,9 @@
             ws.onmessage = function (event) {
                 var data = JSON.parse(event.data);
                 if (data.type === "paintboard_update") {
-                    update(data.y, data.x, data.color);
+                    if(data.id == 0){
+                        update(data.y, data.x, data.color);
+                    }
                 } else {
                     initialPaint()
                 }

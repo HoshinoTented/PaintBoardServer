@@ -6,13 +6,14 @@
 
 ## APIs
 
-接口 | 方法及参数 | 详细内容
+接口 | 方法及Body参数 | 详细内容
 :------------------:|:----------------------------------:|:---------------------:
-/paintBoard/board | GET                                  | 获取绘板内容
-/paintBoard/paint | POST(x: Int, y: Int, color: Int)     | 进行绘画
+/paintBoard/board?id=[绘版id] | GET                                  | 获取绘板内容
+/paintBoard/paint?id=[绘版id] | POST(x: Int, y: Int, color: Int)     | 进行绘画
 /paintBoard/ws    | WebSocket                            | 监听绘板变化的 WebSocket
-/paintBoard/save  | POST(password: String, path: String) | 保存绘板到数据库
-/paintBoard/load  | POST(password: String, path: String) | 从数据库加载绘板（不会发送 WebSocket 信息）
+/paintBoard/history?id=[绘版id]&time=[查询时间点]  | GET(password: String) | **管理员**查询某一时刻绘版内容 
+/paintBoard/blame?id=[绘版id]&time=[查询时间点]&x=[x坐标]&y=[y坐标]  | GET(password: String) | **管理员**查询某一时刻某位置像素由谁绘制 
+/paintBoard/rollback?id=[绘版id]&time=[回滚时间点] | POST(password: String) | **管理员**将绘版回滚到某一时刻 
 
 ## How to RUN it
 

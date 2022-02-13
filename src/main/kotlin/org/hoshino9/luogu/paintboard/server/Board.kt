@@ -1,6 +1,5 @@
 package org.hoshino9.luogu.paintboard.server
 
-import com.fasterxml.jackson.databind.node.ArrayNode
 import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -57,11 +56,15 @@ suspend fun loadAllBoards(time: Long) {
 }
 
 suspend fun loadBoard(id: Int, time: Long) {
+    boards[id] = readBoard(id, time)
+    stringCache[id] = null
+}
+
+suspend fun readBoard(id: Int, time: Long): Board {
     val recordList = mongo.getCollection<PaintRecord>("paintboard$id")
         .find(PaintRecord::time lte time)
         .toList()
-
-    boards[id] = Board(recordList)
+    return Board(recordList)
 }
 
 suspend fun rollback(id: Int, time: Long) {
@@ -70,10 +73,10 @@ suspend fun rollback(id: Int, time: Long) {
     loadBoard(id, System.currentTimeMillis())
 }
 
-suspend fun blame(id: Int, time: Long, x: Int, y: Int): String {
+suspend fun blame(id: Int, time: Long, x: Int, y: Int): PaintRecord? {
     return mongo.getCollection<PaintRecord>("paintboard$id")
-        .find(PaintRecord::time lte time)
-        .descendingSort().first()?.user ?: "[初始状态]"
+        .find(PaintRecord::time lte time, PaintRecord::x eq x, PaintRecord::y eq y)
+        .descendingSort().first()
 }
 
 fun Routing.board() {
@@ -122,7 +125,7 @@ fun Routing.board() {
                 )
 
                 launch {
-                    onPaint(req)
+                    onPaint(req, id)
                 }
 
                 launch {

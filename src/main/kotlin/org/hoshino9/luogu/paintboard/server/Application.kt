@@ -62,11 +62,12 @@ fun connectMongoDB() {
     println("Connected to MongoDB server: $host:$port/$db")
 }
 
-suspend fun onPaint(req: PaintRequest) {
+suspend fun onPaint(req: PaintRequest, id: Int) {
     sessions.forEach {
         try {
             it.send(Gson().toJsonTree(req).apply {
                 asJsonObject.addProperty("type", "paintboard_update")
+                asJsonObject.addProperty("id", id)
             }.toString())
         } catch (e: Throwable) {
             e.printStackTrace()

@@ -21,7 +21,6 @@ suspend fun PipelineContext<*, ApplicationCall>.manageRequest(block: suspend Pip
 
     if (password == config.getProperty("password")) {
         block()
-        call.respond(HttpStatusCode.OK)
     } else call.respond(HttpStatusCode.Forbidden)
 }
 
@@ -68,7 +67,9 @@ fun Routing.managePage() {
                 val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")
                 val time = call.request.queryParameters["time"]?.toLong() ?: throw RequestException("未指定时间")
                 rollback(id, time)
+                onRefresh(id)
                 call.respondText("{\"status\": 200}")
+
             } catch (e: Throwable) {
                 call.respondText(
                     "{\"status\": 400,\"data\": \"${e.message}\"}",

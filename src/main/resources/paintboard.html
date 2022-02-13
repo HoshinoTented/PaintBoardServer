@@ -477,8 +477,8 @@
 
         getCountDown(lastTime + timeLimit);
 
-        function initialPaint() {
-            $.get("/paintBoard/board?id=0", function (resp) {
+        function initialPaint(id) {
+            $.get("/paintBoard/board?id="+id, function (resp) {
                 console.log("get")
                 let imgData=ctx.createImageData(800,400);
                 let data=imgData.data
@@ -519,8 +519,13 @@
                     if(data.id == 0){
                         update(data.y, data.x, data.color);
                     }
-                } else {
-                    initialPaint()
+                } else if(data.type === "refresh") {
+                    if(data.id == 0){
+                        initialPaint(0)
+                    }
+                }
+                else if (data.type === "result"){
+                    initialPaint(0)
                 }
             };
         }

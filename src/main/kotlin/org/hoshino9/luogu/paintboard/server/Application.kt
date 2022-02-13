@@ -29,7 +29,14 @@ data class PaintRequest(val x: Int, val y: Int, val color: String)
 data class User(val _id: Id<User>?, val username: String, val email: String, val password: String)
 data class UserSession(val id: String, val username: String, val time: Long) : Principal
 data class RegisterSession(val email: String, val captcha: String, val time: Long) : Principal
-data class PaintboardRecord(val date: Date, val width: Int, val height: Int, val text: String)
+data class PaintRecord(
+    val time: Long,
+    val user: String,
+    val x: Int,
+    val y: Int,
+    val color: Int
+)
+
 class RequestException(errorMessage: String) : Exception(errorMessage)
 object Unknown
 
@@ -74,19 +81,12 @@ fun main() {
     delay = (config.getProperty("delay")?.toLong() ?: 0) * 1000
 
     runBlocking {
-        loadAll()
+        initDB()
+        loadAllBoards(System.currentTimeMillis())
     }
 
     embeddedServer(Netty, 8080) {
-        launch {
-            while (true) {
-                delay(5 * 60 * 1000)
-                launch {
-                    saveAll()
-                }
-            }
-        }
-
+        install(Compression)
         install(WebSockets)
         install(ContentNegotiation) {
             gson {

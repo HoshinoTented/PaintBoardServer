@@ -471,11 +471,19 @@
 
         function initialPaint() {
             $.get("/paintBoard/board?id=0", function (resp) {
+                console.log("get")
+                let imgData=ctx.createImageData(800,400);
+                let data=imgData.data
                 resp.split(';').map(function (colorStr, x) {
                     colorStr.split(",").map(function (color, y) {
-                        update(y, x, color);
+                        let idx = ((y * (800 * 4)) + (x * 4))
+                        data[idx]= parseInt(color.substr(0, 2), 16);
+                        data[idx+1]= parseInt(color.substr(2, 2), 16);
+                        data[idx+2]= parseInt(color.substr(4, 2), 16);
+                        data[idx+3]= 256;
                     });
                 });
+                ctx.putImageData(imgData,0,0);
             });
         }
 

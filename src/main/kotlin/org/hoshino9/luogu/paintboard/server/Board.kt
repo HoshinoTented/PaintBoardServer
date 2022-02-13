@@ -1,5 +1,6 @@
 package org.hoshino9.luogu.paintboard.server
 
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -11,48 +12,82 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.sessions.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.litote.kmongo.*
+import java.awt.Paint
+import java.util.*
 
-class Board {
-    private val _pixel = Array(800) { IntArray(600) }
-    private var _text: String? = null
+class Board() {
+    private val data = Array(800) { IntArray(400) }
+
+    constructor(records: List<PaintRecord>) : this() {
+        for (record in records) {
+            data[record.x][record.y] = record.color
+        }
+    }
+
     operator fun get(x: Int, y: Int): Int {
-        return _pixel[x][y]
+        return data[x][y]
     }
 
     operator fun set(x: Int, y: Int, value: Int) {
-        _pixel[x][y] = value
-        _text = null
+        data[x][y] = value
     }
 
-    var text: String
-        get() {
-            val txt = _text
-            if (txt != null) {
-                return txt
-            }
-            val newTxt =
-                _pixel.joinToString(separator = ";") { line -> line.joinToString(separator = ",") { "%06x".format(it) } }
-            _text = newTxt
-            return newTxt
-        }
-        set(value) {
-            _text = value
-            value.split(';').forEachIndexed { x, line ->
-                line.split(',').forEachIndexed { y, color ->
-                    _pixel[x][y] = color.toInt(16)
-                }
-            }
-        }
+    override fun toString(): String {
+        return data.joinToString(separator = ";") { line -> line.joinToString(separator = ",") { "%06x".format(it) } }
+    }
 }
 
-val boardNum = config.getProperty("boardnum").toInt()
-val boards = Array(boardNum) { Board() }
+val boardNum = config.getProperty("boardNum").toInt()
+var boards = Array(boardNum) { Board() }
+val stringCache = Array<String?>(boardNum) { null }
+
+suspend fun initDB() {
+    for (id in 0..boardNum - 1) {
+        mongo.getCollection<PaintRecord>("paintboard$id")
+            .createIndex("{time:1}")
+    }
+}
+
+suspend fun loadAllBoards(time: Long) {
+    for (id in 0..boardNum - 1) {
+        loadBoard(id, time)
+    }
+}
+
+suspend fun loadBoard(id: Int, time: Long) {
+    val recordList = mongo.getCollection<PaintRecord>("paintboard$id")
+        .find(PaintRecord::time lte time)
+        .toList()
+
+    boards[id] = Board(recordList)
+}
+
+suspend fun rollback(id: Int, time: Long) {
+    mongo.getCollection<PaintRecord>("paintboard$id")
+        .deleteMany(PaintRecord::time gt time)
+    loadBoard(id, System.currentTimeMillis())
+}
+
+suspend fun blame(id: Int, time: Long, x: Int, y: Int): String {
+    return mongo.getCollection<PaintRecord>("paintboard$id")
+        .find(PaintRecord::time lte time)
+        .descendingSort().first()?.user ?: "[初始状态]"
+}
 
 fun Routing.board() {
     get("/paintBoard/board") {
         try {
             val id = call.request.queryParameters["id"]?.toInt() ?: throw RequestException("未指定画板号")
-            call.respondText(boards[id].text)
+            val str = stringCache[id]
+            if (str != null) {
+                call.respondText(str)
+            } else {
+                val newStr = boards[id].toString()
+                stringCache[id] = newStr
+                call.respondText(newStr)
+            }
         } catch (e: Throwable) {
             call.respondText(
                 "{\"status\": 400,\"data\": \"${e.message}\"}",
@@ -77,6 +112,8 @@ fun Routing.board() {
                 if (req.color.toInt(16) !in 0x000000..0xFFFFFF) throw RequestException("颜色越界")
 
                 boards[id][req.x, req.y] = req.color.toInt(16)
+                stringCache[id] = null
+
                 call.sessions.set(session?.copy(time = System.currentTimeMillis()))
                 call.respondText(
                     "{\"status\": 200}",
@@ -87,6 +124,18 @@ fun Routing.board() {
                 launch {
                     onPaint(req)
                 }
+
+                launch {
+                    mongo.getCollection<PaintRecord>("paintboard$id")
+                        .insertOne(
+                            PaintRecord(
+                                System.currentTimeMillis(),
+                                call.authentication.principal<UserSession>()?.username ?: "not login?",
+                                req.x, req.y, req.color.toInt(16)
+                            )
+                        )
+                }
+
             } catch (e: Throwable) {
                 call.respondText(
                     "{\"status\": 400,\"data\": \"${e.message}\"}",

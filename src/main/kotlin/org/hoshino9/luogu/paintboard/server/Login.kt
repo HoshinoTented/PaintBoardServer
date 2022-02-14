@@ -129,11 +129,11 @@ fun Routing.loginPage() {
             val req = Gson().fromJson(body, User::class.java)
             val query = mongo.getCollection<User>()
                 .findOne(or(User::username eq req.username, User::email eq req.email))
+            if (query != null) { throw RequestException("该用户名或邮箱已被注册") }
 
             if (config.getProperty("captcha").toBoolean()) {
                 val capt = Gson().fromJson(body, JsonObject::class.java).get("captcha").asString
                 val session = call.sessions.get<RegisterSession>() ?: throw RequestException("请先获取验证码")
-                if (query != null) { throw RequestException("该用户名或邮箱已被注册") }
                 if (capt != session.captcha || req.email != session.email ||
                     System.currentTimeMillis() - session.time > 5 * 60 * 1000) throw RequestException("验证码无效")
             }

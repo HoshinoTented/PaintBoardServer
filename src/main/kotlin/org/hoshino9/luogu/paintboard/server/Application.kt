@@ -1,5 +1,6 @@
 package org.hoshino9.luogu.paintboard.server
 
+import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.features.*
@@ -58,8 +59,11 @@ fun connectMongoDB() {
     println("Connected to MongoDB server: $host:$port/$db")
 }
 
-suspend fun onPaint(id: Int) {
-    val str = "{\"type\":\"paintboard_update\",\"id\":$id}"
+suspend fun onPaint(req: PaintRequest, id: Int) {
+    val str = Gson().toJsonTree(req).apply {
+        asJsonObject.addProperty("type", "paintboard_update")
+        asJsonObject.addProperty("id", id)
+    }.toString()
     sessions.forEach {
         try {
             it.send(str)
@@ -99,7 +103,10 @@ fun main() {
             }
         }
         install(Sessions) {
-            cookie<UserSession>("user_session", directorySessionStorage(File(".sessions"), cached = true)) { cookie.path = "/" }
+            cookie<UserSession>(
+                "user_session",
+                directorySessionStorage(File(".sessions"), cached = true)
+            ) { cookie.path = "/" }
             cookie<RegisterSession>("register_session") {
                 cookie.path = "/"
                 transform(

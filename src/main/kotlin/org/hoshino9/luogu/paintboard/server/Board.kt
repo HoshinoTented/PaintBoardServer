@@ -93,7 +93,7 @@ suspend fun rollback(id: Int, time: Long) {
 suspend fun blame(id: Int, time: Long, x: Int, y: Int): PaintRecord? {
     return mongo.getCollection<PaintRecord>("paintboard$id")
         .find(PaintRecord::time lte time, PaintRecord::x eq x, PaintRecord::y eq y)
-        .descendingSort().first()
+        .descendingSort(PaintRecord::time).first()
 }
 
 fun Routing.board() {
@@ -141,7 +141,7 @@ fun Routing.board() {
                     status = HttpStatusCode.OK
                 )
 
-                onPaint(id)
+                onPaint(req, id)
 
                 mongo.getCollection<PaintRecord>("paintboard$id")
                     .insertOne(

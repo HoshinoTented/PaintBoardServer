@@ -8,3 +8,5 @@ out/
 bin/
 
 config.properties
+
+.sessions/

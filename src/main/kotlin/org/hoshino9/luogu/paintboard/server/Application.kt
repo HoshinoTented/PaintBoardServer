@@ -1,6 +1,7 @@
 package org.hoshino9.luogu.paintboard.server
 
 import com.google.gson.Gson
+import com.google.gson.JsonElement
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.features.*
@@ -14,8 +15,10 @@ import io.ktor.server.netty.*
 import io.ktor.sessions.*
 import io.ktor.util.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.litote.kmongo.Id
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.coroutine.coroutine
@@ -27,7 +30,14 @@ data class PaintRequest(val x: Int, val y: Int, val color: String)
 data class User(val _id: Id<User>?, val username: String, val email: String, val password: String)
 data class UserSession(val id: String, val username: String, val time: Long) : Principal
 data class RegisterSession(val email: String, val captcha: String, val time: Long) : Principal
-data class Paintboard(val name: String, val text: String)
+data class PaintRecord(
+    val time: Long,
+    val user: String,
+    val x: Int,
+    val y: Int,
+    val color: Int
+)
+
 class RequestException(errorMessage: String) : Exception(errorMessage)
 object Unknown
 
@@ -53,12 +63,22 @@ fun connectMongoDB() {
     println("Connected to MongoDB server: $host:$port/$db")
 }
 
-suspend fun onPaint(req: PaintRequest) {
+suspend fun onPaint(req: PaintRequest, id: Int) {
+    val str = "{\"type\":\"paintboard_update\",\"id\":$id}"
     sessions.forEach {
         try {
-            it.send(Gson().toJsonTree(req).apply {
-                asJsonObject.addProperty("type", "paintboard_update")
-            }.toString())
+            it.send(str)
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+    }
+}
+
+suspend fun onRefresh(id: Int) {
+    val str = "{\"type\":\"refresh\",\"id\":$id}"
+    sessions.forEach {
+        try {
+            it.send(str)
         } catch (e: Throwable) {
             e.printStackTrace()
         }
@@ -71,21 +91,13 @@ fun main() {
 
     delay = (config.getProperty("delay")?.toLong() ?: 0) * 1000
 
-    try {
-        load()
-    } catch (e: Exception) {
-        e.printStackTrace()
+    runBlocking {
+        initDB()
+        loadAllBoards(System.currentTimeMillis())
     }
 
     embeddedServer(Netty, 8080) {
-        launch {
-            while (true) {
-                println("Saving board...")
-                save()
-                delay(5 * 60 * 1000)
-            }
-        }
-
+        install(Compression)
         install(WebSockets)
         install(ContentNegotiation) {
             gson {

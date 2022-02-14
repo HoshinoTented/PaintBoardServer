@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://cdn.luogu.com.cn/css/amazeui.min.css">
     <style>
         .main-body {
-            padding-top: 51px;
             padding-bottom: 20px;
             color: #7f8c8d;
         }
@@ -58,8 +57,16 @@
 
         #mycanvas {
             position: relative;
-            background: #000000;
             image-rendering: pixelated;
+        }
+
+        .loading {
+            color: #ffffff;
+            font-size: 200%;
+            top: calc(200px - 0.5em);
+            width: 100%;
+            text-align: center;
+            position: absolute;
         }
 
         .description {
@@ -69,460 +76,474 @@
 </head>
 
 <body>
-<header class="am-topbar am-topbar-fixed-top">
-    <div class="am-container">
-        <h1 class="am-topbar-brand">
-            <a href="#">周行算协冬日绘板</a>
-        </h1>
-        <div class="am-topbar-right">
-            <button class="am-btn am-btn-primary am-topbar-btn am-btn-sm" id="login-button">登录</button>
-            <div class="am-dropdown" data-am-dropdown>
-                <button class="am-btn am-btn-primary am-topbar-btn am-btn-sm am-dropdown-toggle" id="user-dropdown"
+    <header class="am-topbar am-topbar-fixed-top">
+        <div class="am-container">
+            <h1 class="am-topbar-brand">
+                <a href="#">周行算协冬日绘板</a>
+            </h1>
+            <div class="am-topbar-right">
+                <button class="am-btn am-btn-primary am-topbar-btn am-btn-sm" id="login-button">登录</button>
+                <div class="am-dropdown" data-am-dropdown>
+                    <button class="am-btn am-btn-primary am-topbar-btn am-btn-sm am-dropdown-toggle" id="user-dropdown"
                         data-am-dropdown-toggle>
-                    <span id="username"></span>
-                    <span class="am-icon-caret-down"></span>
-                </button>
-                <ul class="am-dropdown-content">
-                    <li><a href="/paintBoard/logout" id="logout"><span class="am-icon-sign-out"></span>登出</a>
-                    </li>
-                </ul>
+                        <span id="username"></span>
+                        <span class="am-icon-caret-down"></span>
+                    </button>
+                    <ul class="am-dropdown-content">
+                        <li><a href="/paintBoard/logout" id="logout"><span class="am-icon-sign-out"></span>登出</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
-</header>
+    </header>
 
-<div class="am-g am-container main-body">
-    <div class="am-u-lg-12">
+    <div class="am-g am-container main-body">
+        <div class="am-u-lg-12">
+            <div class="am-g">
+                <div class="am-u-lg-11 am-u-lg-centered" id="canvas-box">
+                    <div class="loading">加载中...</div>
+                    <canvas width=800 height=400 id='mycanvas'> </canvas>
+                </div>
+            </div>
+        </div>
         <div class="am-g">
-            <div class="am-u-lg-11 am-u-lg-centered" id="canvas-box">
-                <canvas width=800 height=400 id='mycanvas'> </canvas>
+            <div class="am-u-lg-6">
+                <div id='palette'>Loading...</div>
             </div>
-        </div>
-    </div>
-    <div class="am-g">
-        <div class="am-u-lg-6">
-            <div id='palette'>Loading...</div>
-        </div>
-        <div class="am-u-lg-2">
-            <div class="am-vertical-align" style="height: 92.52px;text-align:center;">
-                <div class="am-vertical-align-middle" id="custom-color-box">
-                    <input type="color" id="custom-color" value="#ffffff">
-                    <br>
-                    <label for="custom-color">自定义颜色</label>
+            <div class="am-u-lg-2">
+                <div class="am-vertical-align" style="height: 92.52px;text-align:center;">
+                    <div class="am-vertical-align-middle" id="custom-color-box">
+                        <input type="color" id="custom-color" value="#ffffff">
+                        <br>
+                        <label for="custom-color">自定义颜色</label>
+                    </div>
                 </div>
             </div>
+            <div class="am-u-lg-4">
+                <button type="button" class="am-btn am-btn-primary am-radius" zoom=1>全部显示</button>
+                <button type="button" class="am-btn am-btn-secondary am-radius" zoom=5>放大5x</button>
+                <button type="button" class="am-btn am-btn-success am-radius" zoom=10>放大10x</button>
+            </div>
+            <div class="am-u-lg-4">
+                <p>
+                    还剩 <span id='timeleft' class="am-badge am-badge-secondary"></span>
+                </p>
+            </div>
         </div>
-        <div class="am-u-lg-4">
-            <button type="button" class="am-btn am-btn-primary am-radius" zoom=1>全部显示</button>
-            <button type="button" class="am-btn am-btn-secondary am-radius" zoom=5>放大5x</button>
-            <button type="button" class="am-btn am-btn-success am-radius" zoom=10>放大10x</button>
-        </div>
-        <div class="am-u-lg-4">
-            <p>
-                还剩 <span id='timeleft' class="am-badge am-badge-secondary"></span>
-            </p>
+        <div class="description">
+            <p>操作说明：左键绘制，右键拖动画板，滚轮缩放</p>
+            <p>前端来源：<a href="https://www.luogu.com.cn">洛谷</a></p>
         </div>
     </div>
-    <div class="description">
-        <p>操作说明：左键绘制，右键拖动画板，滚轮缩放</p>
-        <p>前端来源：<a href="https://www.luogu.com.cn">洛谷</a></p>
-    </div>
-</div>
 
-<div class="am-modal" tabindex="-1" id="login-modal">
-    <div class="am-modal-dialog">
-        <form id="login-form" class="am-form" onsubmit="return false">
-            <fieldset>
-                <div class=" am-text-left">
-                    <div class="am-form-group">
-                        <label for="" class="am-icon-user">用户名</label>
-                        <input name="username" type="text" id="doc-vld-username" placeholder="用户名/邮箱地址"
-                               class="am-form-field" />
-                    </div>
+    <div class="am-modal" tabindex="-1" id="login-modal">
+        <div class="am-modal-dialog">
+            <form id="login-form" class="am-form" onsubmit="return false">
+                <fieldset>
+                    <div class=" am-text-left">
+                        <div class="am-form-group">
+                            <label for="" class="am-icon-user">用户名</label>
+                            <input name="username" type="text" id="doc-vld-username" placeholder="用户名/邮箱地址"
+                                class="am-form-field" />
+                        </div>
 
-                    <div class="am-form-group">
-                        <label for="" class="am-icon-lock">密码</label>
-                        <input name="password" type="password" id="doc-vld-password" placeholder="密码"
-                               class="am-form-field" />
-                    </div>
-                </div>
-                <button class="am-btn am-btn-primary" type="submit">登录</button>
-                <div>还没有账户？<a href="javascript:void(0);" id="register">注册一个</a></div>
-            </fieldset>
-        </form>
-    </div>
-</div>
-
-<div class="am-modal" tabindex="-1" id="register-modal">
-    <div class="am-modal-dialog am-g">
-        <form id="register-form" class="am-form" onsubmit="return false" data-am-validator>
-            <fieldset>
-                <div class="am-text-left">
-                    <div class="am-form-group">
-                        <label for="reg-username" class="am-icon-user">用户名</label>
-                        <input name="username" type="text" id="reg-username" minlength="3" placeholder="用户名（至少3个字符）"
-                               class="am-form-field" required />
-                    </div>
-
-                    <div class="am-form-group">
-                        <label for="reg-email" class="am-icon-envelope">邮箱</label>
-                        <div class="am-g">
-                            <div class="am-u-sm-8">
-                                <input name="email" type="text" id="reg-email" minlength="3" placeholder="邮箱"
-                                       class="am-form-field" required />
-                            </div>
-                            <div class="am-u-sm-4">@bupt.edu.cn</div>
+                        <div class="am-form-group">
+                            <label for="" class="am-icon-lock">密码</label>
+                            <input name="password" type="password" id="doc-vld-password" placeholder="密码"
+                                class="am-form-field" />
                         </div>
                     </div>
+                    <button class="am-btn am-btn-primary" type="submit">登录</button>
+                    <div>还没有账户？<a href="javascript:void(0);" id="register">注册一个</a></div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
 
-                    <div class="am-form-group">
-                        <label for="captcha" class="am-icon-check">验证码</label>
-                        <div class="am-g">
-                            <div class="am-u-sm-8">
-                                <input name="captcha" type="email" id="reg-captcha" minlength="6" placeholder="验证码"
-                                       class="am-form-field" required />
-                            </div>
-                            <div class="am-u-sm-4">
-                                <button class="am-btn am-btn-primary" id="send-captcha">发送验证码</button>
+    <div class="am-modal" tabindex="-1" id="register-modal">
+        <div class="am-modal-dialog am-g">
+            <form id="register-form" class="am-form" onsubmit="return false" data-am-validator>
+                <fieldset>
+                    <div class="am-text-left">
+                        <div class="am-form-group">
+                            <label for="reg-username" class="am-icon-user">用户名</label>
+                            <input name="username" type="text" id="reg-username" minlength="3" placeholder="用户名（至少3个字符）"
+                                class="am-form-field" required />
+                        </div>
+
+                        <div class="am-form-group">
+                            <label for="reg-email" class="am-icon-envelope">邮箱</label>
+                            <div class="am-g">
+                                <div class="am-u-sm-8">
+                                    <input name="email" type="text" id="reg-email" minlength="3" placeholder="邮箱"
+                                        class="am-form-field" required />
+                                </div>
+                                <div class="am-u-sm-4">@bupt.edu.cn</div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="am-form-group">
-                        <label for="" class="am-icon-lock">密码</label>
-                        <input name="password" type="password" id="reg-password" minlength="6" placeholder="密码"
-                               class="am-form-field" required />
+                        <div class="am-form-group">
+                            <label for="captcha" class="am-icon-check">验证码</label>
+                            <div class="am-g">
+                                <div class="am-u-sm-8">
+                                    <input name="captcha" type="email" id="reg-captcha" minlength="6" placeholder="验证码"
+                                        class="am-form-field" required />
+                                </div>
+                                <div class="am-u-sm-4">
+                                    <button class="am-btn am-btn-primary" id="send-captcha">发送验证码</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="am-form-group">
+                            <label for="" class="am-icon-lock">密码</label>
+                            <input name="password" type="password" id="reg-password" minlength="6" placeholder="密码"
+                                class="am-form-field" required />
+                        </div>
                     </div>
-                </div>
-                <button class="am-btn am-btn-primary" type="submit">注册</button>
-            </fieldset>
-        </form>
+                    <button class="am-btn am-btn-primary" type="submit">注册</button>
+                </fieldset>
+            </form>
+        </div>
     </div>
-</div>
 
-<!--在这里编写你的代码-->
+    <!--在这里编写你的代码-->
 
-<!--[if (gte IE 9)|!(IE)]><!-->
-<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdn.luogu.com.cn/js/amazeui.min.js"></script>
-<!--<![endif]-->
-<!--[if lte IE 8 ]>
+    <!--[if (gte IE 9)|!(IE)]><!-->
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.luogu.com.cn/js/amazeui.min.js"></script>
+    <!--<![endif]-->
+    <!--[if lte IE 8 ]>
 <script src="https://libs.baidu.com/jquery/1.11.3/jquery.min.js"></script>
 <script src="https://cdn.staticfile.org/modernizr/2.8.3/modernizr.js"></script>
 <script src="assets/js/amazeui.ie8polyfill.min.js"></script>
 <![endif]-->
-<script>
-    let ctx = document.getElementById("mycanvas").getContext("2d");
-    H = 400;
-    W = 800;
-    nowColor = 0x000000;
-    scale = 1;
-    dragging = false;
-    lastMouseX = null,
-        lastMouseY = null,
-        dragged = 0;
-    lastTime = 1577874127;
-    timeLimit = 0;
-    rgbList = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
-    nowInterval = 0;
-
-    function update(y, x, color) {
-        if (dragged) {
+    <script>
+        let ctx = document.getElementById("mycanvas").getContext("2d");
+        H = 400;
+        W = 800;
+        nowColor = 0x000000;
+        scale = 1;
+        dragging = false;
+        lastMouseX = null,
+            lastMouseY = null,
             dragged = 0;
-            return;
+        lastTime = 1577874127;
+        timeLimit = 0;
+        rgbList = ['000000', 'FFFFFF', 'AAAAAA', '555555', 'FED3C7', 'FFC4CE', 'FAAC8E', 'FF8B83', 'F44336', 'E91E63', 'E2669E', '9C27B0', '673AB7', '3F51B5', '004670', '057197', '2196F3', '00BCD4', '3BE5DB', '97FDDC', '167300', '37A93C', '89E642', 'D7FF07', 'FFF6D1', 'F8CB8C', 'FFEB3B', 'FFC107', 'FF9800', 'FF5722', 'B83F27', '795548'];
+        nowInterval = 0;
+
+        function update(y, x, color) {
+            if (dragged) {
+                dragged = 0;
+                return;
+            }
+
+            let r = parseInt(color.substr(0, 2), 16);
+            let g = parseInt(color.substr(2, 2), 16);
+            let b = parseInt(color.substr(4, 2), 16);
+
+            ctx.fillStyle = "rgb(" + r + ", " + g + ", " + b + ")";
+            ctx.fillRect(x, y, 1, 1);
         }
 
-        let r = parseInt(color.substr(0, 2), 16);
-        let g = parseInt(color.substr(2, 2), 16);
-        let b = parseInt(color.substr(4, 2), 16);
+        function initpale() {
+            $('#palette').html('');
+            rgbList.forEach(function (item) {
+                let newdiv = $('<div class="paleitem" data-cid=' + item + '></div>');
+                newdiv.css('background', '#' + item);
+                $('#palette').append(newdiv);
+            });
+            zoom(1)
+        }
 
-        ctx.fillStyle = "rgb(" + r + ", " + g + ", " + b + ")";
-        ctx.fillRect(x, y, 1, 1);
-    }
+        $.fn.serializeObject = function () {
+            var hasOwnProperty = Object.prototype.hasOwnProperty;
+            return this.serializeArray().reduce(function (data, pair) {
+                if (!hasOwnProperty.call(data, pair.name)) {
+                    data[pair.name] = pair.value;
+                }
+                return data;
+            }, {});
+        };
 
-    function initpale() {
-        $('#palette').html('');
-        rgbList.forEach(function (item) {
-            let newdiv = $('<div class="paleitem" data-cid=' + item + '></div>');
-            newdiv.css('background', '#' + item);
-            $('#palette').append(newdiv);
+        binditem = function () {
+            $('.paleitem').removeClass("selected");
+            $('#custom-color-box').removeClass("selected");
+            $(this).addClass("selected");
+            nowColor = $(this).attr('data-cid');
+            // console.log(nowColor);
+        }
+
+        $('#custom-color-box').bind("click", bindCustomColor);
+        $('#custom-color').bind("input", bindCustomColor);
+
+        function bindCustomColor(e) {
+            $('.paleitem').removeClass("selected");
+            $('#custom-color-box').addClass("selected");
+            if (e.originalEvent.target.value) {
+                CustomColor = e.originalEvent.target.value.substr(1);
+            }
+            nowColor = CustomColor;
+            // console.log(nowColor);
+        }
+
+        zoom = function (s) {
+            scale = s;
+            $('#mycanvas').width(800 * scale)
+            $('#mycanvas').height(400 * scale)
+            if (s == 1) {
+                $('#mycanvas').css('top', 0);
+                $('#mycanvas').css('left', 0);
+            }
+        }
+        $("[zoom]").click(function () {
+            zoom($(this).attr('zoom'));
         });
-        zoom(1)
-    }
-
-    $.fn.serializeObject = function () {
-        var hasOwnProperty = Object.prototype.hasOwnProperty;
-        return this.serializeArray().reduce(function (data, pair) {
-            if (!hasOwnProperty.call(data, pair.name)) {
-                data[pair.name] = pair.value;
+        initpale();
+        $('.paleitem').bind("click", binditem);
+        $('[data-cid=0]').addClass("selected");
+        $('#mycanvas').bind("click", function () {
+            // if (!$.AMUI.utils.cookie.get('username')) {
+            //     alert("请先登录");
+            //     return;
+            // }
+            if (new Date() < (lastTime + timeLimit) * 1000) {
+                alert("冷却时间未到，暂时不能涂色");
+                return;
             }
-            return data;
-        }, {});
-    };
-
-    binditem = function () {
-        $('.paleitem').removeClass("selected");
-        $('#custom-color-box').removeClass("selected");
-        $(this).addClass("selected");
-        nowColor = $(this).attr('data-cid');
-        // console.log(nowColor);
-    }
-
-    $('#custom-color-box').bind("click", bindCustomColor);
-    $('#custom-color').bind("input", bindCustomColor);
-
-    function bindCustomColor(e) {
-        $('.paleitem').removeClass("selected");
-        $('#custom-color-box').addClass("selected");
-        if (e.originalEvent.target.value) {
-            CustomColor = e.originalEvent.target.value.substr(1);
-        }
-        nowColor = CustomColor;
-        // console.log(nowColor);
-    }
-
-    zoom = function (s) {
-        scale = s;
-        $('#mycanvas').width(800 * scale)
-        $('#mycanvas').height(400 * scale)
-        if (s == 1) {
-            $('#mycanvas').css('top', 0);
-            $('#mycanvas').css('left', 0);
-        }
-    }
-    $("[zoom]").click(function () {
-        zoom($(this).attr('zoom'));
-    });
-    initpale();
-    $('.paleitem').bind("click", binditem);
-    $('[data-cid=0]').addClass("selected");
-    $('#mycanvas').bind("click", function () {
-        // if (!$.AMUI.utils.cookie.get('username')) {
-        //     alert("请先登录");
-        //     return;
-        // }
-        if (new Date() < (lastTime + timeLimit) * 1000) {
-            alert("冷却时间未到，暂时不能涂色");
-            return;
-        }
-        var x = parseInt(event.offsetX / scale);
-        var y = parseInt(event.offsetY / scale);
-
-        lastTime = (new Date()) / 1000;
-        getCountDown(lastTime + timeLimit);
-
-        $.post("/paintBoard/paint", JSON.stringify({
-            x: x,
-            y: y,
-            color: nowColor
-        }), function (resp) {
-            if (resp.status !== 200) {
-                alert(resp.data);
-            } else {
-                update(y, x, nowColor);
-            }
+            var x = parseInt(event.offsetX / scale);
+            var y = parseInt(event.offsetY / scale);
+            lastTime = (new Date()) / 1000;
+            getCountDown(lastTime + timeLimit);
+            $.post("/paintBoard/paint?id=0", JSON.stringify({
+                x: x,
+                y: y,
+                color: nowColor
+            }), function (resp) {
+                if (resp.status !== 200) {
+                    alert(resp.data);
+                } else {
+                    update(y, x, nowColor);
+                }
+            });
         });
-    });
-
-    mycanvas = $('#mycanvas');
-    mycanvas.bind("mousedown", function (e) {
-        if (e.button == 2) {
-            deltaX = e.clientX - mycanvas.position().left;
-            deltaY = e.clientY - mycanvas.position().top;
-            $(document).bind("mousemove", move);
-            $(document).bind("mouseup", stop);
-            mycanvas.css("cursor", "move");
-        }
-        return false;
-    })
-
-    function move(e) {
-        let left = e.clientX - deltaX;
-        let top = e.clientY - deltaY;
-        left = Math.min(left, 0);
-        left = Math.max(left, 800 - mycanvas.width());
-        top = Math.min(top, 0);
-        top = Math.max(top, 400 - mycanvas.height());
-        mycanvas.css({
-            "left": left + 'px',
-            "top": top + 'px'
-        });
-        return false;
-    }
-
-    function stop() {
-        if (event.button == 2) {
-            $(document).unbind("mousemove", move);
-            $(document).unbind("mouseup", stop);
-            mycanvas.css("cursor", "auto");
-        }
-        return false;
-    }
-
-    $('#mycanvas').contextmenu(function (e) {
-        e.preventDefault();
-    })
-
-    $('#mycanvas').bind("wheel", function (event, deltay) {
-        let delta = event.originalEvent.deltaY;
-        if (delta == 0) return false;
-        let y = parseInt(event.offsetY / scale);
-        let x = parseInt(event.offsetX / scale);
-        let relocate = false;
-        if (delta > 0) {
-            if (scale == 10) {
-                zoom(5);
-                relocate = true;
+        mycanvas = $('#mycanvas');
+        mycanvas.bind("mousedown", function (e) {
+            if (e.button == 2) {
+                deltaX = e.clientX - mycanvas.position().left;
+                deltaY = e.clientY - mycanvas.position().top;
+                $(document).bind("mousemove", move);
+                $(document).bind("mouseup", stop);
+                mycanvas.css("cursor", "move");
             }
-            else if (scale == 5) {
-                zoom(1);
-            }
-        } else {
-            if (scale == 1) {
-                zoom(5);
-                relocate = true;
-            }
-            else if (scale == 5) {
-                zoom(10);
-                relocate = true;
-            }
-        }
-        if (relocate) {
-            let left = -x * scale + x;
-            let top = -y * scale + y;
+            return false;
+        })
+
+        function move(e) {
+            let left = e.clientX - deltaX;
+            let top = e.clientY - deltaY;
             left = Math.min(left, 0);
             left = Math.max(left, 800 - mycanvas.width());
             top = Math.min(top, 0);
             top = Math.max(top, 400 - mycanvas.height());
-            $('#mycanvas').css('top', top);
-            $('#mycanvas').css('left', left);
+            mycanvas.css({
+                "left": left + 'px',
+                "top": top + 'px'
+            });
+            return false;
         }
-        return false;
-    });
 
-    $('#login-button').click(function () {
-        $('#login-modal').modal();
-    });
-    $('#login-form').submit(function () {
-        let data = $('#login-form').serializeObject();
-        $.post('/paintBoard/login', JSON.stringify(data)
-            , function (resp) {
-                if (resp.status !== 200) {
-                    alert(resp.data);
-                } else {
-                    $.AMUI.utils.cookie.set('username', resp.data.username);
-                    $('#username').text(resp.data.username);
-                    $('#login-button').hide();
-                    $('#user-dropdown').show();
-                    $('#login-modal').modal('close');
-                }
-            });
-    });
-    $('#logout').click(function () {
-        $.AMUI.utils.cookie.unset('username');
-    });
-    $('#register').click(function () {
-        $('#login-modal').modal('close');
-        $('#register-modal').modal();
-    });
-    $("#send-captcha").click(function () { // TODO 点击“发送验证码”时不提交表单
-        let email = $('#register-form').serializeObject().email;
-        let suffix = '@bupt.edu.cn' // TODO 在@bupt.cn与@bupt.edu.cn间切换
-        console.log($('#register-form').serializeObject());
-        $.get('/paintBoard/captcha?email=' + email + suffix
-            , function (resp) {
-                console.log(resp);
-                if (resp.status !== 200) {
-                    alert(resp.data);
-                } else {
-                    // TODO 倒计时60s
-                }
-            });
-    })
-    $('#register-form').submit(function () {
-        let data = $('#register-form').serializeObject();
-        let suffix = '@bupt.edu.cn' // TODO 在@bupt.cn与@bupt.edu.cn间切换
-        data.email += suffix;
-        $.post('/paintBoard/user', JSON.stringify(data), function (resp) {
-            if (resp.status !== 200) {
-                alert(resp.data);
+        function stop() {
+            if (event.button == 2) {
+                $(document).unbind("mousemove", move);
+                $(document).unbind("mouseup", stop);
+                mycanvas.css("cursor", "auto");
             }
-        });
-    })
+            return false;
+        }
 
-    function getCountDown(timestamp) {
-        clearInterval(nowInterval);
-        nowInterval = setInterval(function () {
-            var nowTime = new Date();
-            var endTime = new Date(timestamp * 1000);
-            var t = endTime.getTime() - nowTime.getTime();
-            if (t < 0) {
-                $("#timeleft").html("冷却时间到");
-                clearInterval(nowInterval);
+        $('#mycanvas').contextmenu(function (e) {
+            e.preventDefault();
+        })
+
+        $('#mycanvas').bind("wheel", function (event, deltay) {
+            let delta = event.originalEvent.deltaY;
+            if (delta == 0) return false;
+            let y = parseInt(event.offsetY / scale);
+            let x = parseInt(event.offsetX / scale);
+            let relocate = false;
+            if (delta > 0) {
+                if (scale == 10) {
+                    zoom(5);
+                    relocate = true;
+                }
+                else if (scale == 5) {
+                    zoom(1);
+                }
+            } else {
+                if (scale == 1) {
+                    zoom(5);
+                    relocate = true;
+                }
+                else if (scale == 5) {
+                    zoom(10);
+                    relocate = true;
+                }
+            }
+            if (relocate) {
+                let left = -x * scale + x;
+                let top = -y * scale + y;
+                left = Math.min(left, 0);
+                left = Math.max(left, 800 - mycanvas.width());
+                top = Math.min(top, 0);
+                top = Math.max(top, 400 - mycanvas.height());
+                $('#mycanvas').css('top', top);
+                $('#mycanvas').css('left', left);
+            }
+            return false;
+        });
+
+        $('#login-button').click(function () {
+            $('#login-modal').modal();
+        });
+        $('#login-form').submit(function () {
+            let data = $('#login-form').serializeObject();
+            $.post('/paintBoard/login', JSON.stringify(data)
+                , function (resp) {
+                    if (resp.status !== 200) {
+                        alert(resp.data);
+                    } else {
+                        $.AMUI.utils.cookie.set('username', resp.data.username);
+                        $('#username').text(resp.data.username);
+                        $('#login-button').hide();
+                        $('#user-dropdown').show();
+                        $('#login-modal').modal('close');
+                    }
+                });
+        });
+        $('#logout').click(function () {
+            $.AMUI.utils.cookie.unset('username');
+        });
+        $('#register').click(function () {
+            $('#login-modal').modal('close');
+            $('#register-modal').modal();
+        });
+        $("#send-captcha").click(function () { // TODO 点击“发送验证码”时不提交表单
+            let email = $('#register-form').serializeObject().email;
+            let suffix = '@bupt.edu.cn' // TODO 在@bupt.cn与@bupt.edu.cn间切换
+            console.log($('#register-form').serializeObject());
+            $.get('/paintBoard/captcha?email=' + email + suffix
+                , function (resp) {
+                    console.log(resp);
+                    if (resp.status !== 200) {
+                        alert(resp.data);
+                    } else {
+                        // TODO 倒计时60s
+                    }
+                });
+        })
+        $('#register-form').submit(function () {
+            let data = $('#register-form').serializeObject();
+            let suffix = '@bupt.edu.cn' // TODO 在@bupt.cn与@bupt.edu.cn间切换
+            data.email += suffix;
+            $.post('/paintBoard/user', JSON.stringify(data), function (resp) {
+                if (resp.status !== 200) {
+                    alert(resp.data);
+                }
+            });
+        })
+
+        function getCountDown(timestamp) {
+            clearInterval(nowInterval);
+            nowInterval = setInterval(function () {
+                var nowTime = new Date();
+                var endTime = new Date(timestamp * 1000);
+                var t = endTime.getTime() - nowTime.getTime();
+                if (t < 0) {
+                    $("#timeleft").html("冷却时间到");
+                    clearInterval(nowInterval);
+                    return;
+                }
+                var hour = Math.floor(t / 1000 / 60 / 60 % 24);
+                var min = Math.floor(t / 1000 / 60 % 60);
+                var sec = Math.floor(t / 1000 % 60);
+                if (hour < 10)
+                    hour = "0" + hour;
+                if (min < 10)
+                    min = "0" + min;
+                if (sec < 10)
+                    sec = "0" + sec;
+                var countDownTime = hour + ":" + min + ":" + sec;
+                $("#timeleft").html(countDownTime);
+            }, 1000);
+        }
+
+        getCountDown(lastTime + timeLimit);
+
+        function initialPaint(id) {
+            $.get("/paintBoard/board?id=" + id, function (resp) {
+                console.log("get")
+                let imgData = ctx.createImageData(800, 400);
+                let data = imgData.data
+                resp.split(';').map(function (colorStr, x) {
+                    colorStr.split(",").map(function (color, y) {
+                        let idx = ((y * (800 * 4)) + (x * 4))
+                        data[idx] = parseInt(color.substr(0, 2), 16);
+                        data[idx + 1] = parseInt(color.substr(2, 2), 16);
+                        data[idx + 2] = parseInt(color.substr(4, 2), 16);
+                        data[idx + 3] = 256;
+                    });
+                });
+                ctx.putImageData(imgData, 0, 0);
+            })
+        }
+
+
+        var ws = null;
+        function connectWs() {
+            try {
+                ws = new WebSocket('${wsurl}/paintBoard/ws');
+            } catch (e) {
+                alert("无法连接追踪服务器");
                 return;
             }
-            var hour = Math.floor(t / 1000 / 60 / 60 % 24);
-            var min = Math.floor(t / 1000 / 60 % 60);
-            var sec = Math.floor(t / 1000 % 60);
-            if (hour < 10)
-                hour = "0" + hour;
-            if (min < 10)
-                min = "0" + min;
-            if (sec < 10)
-                sec = "0" + sec;
-            var countDownTime = hour + ":" + min + ":" + sec;
-            $("#timeleft").html(countDownTime);
-        }, 1000);
-    }
 
-    getCountDown(lastTime + timeLimit);
+            ws.onopen = function () {
+                var message = {
+                    "type": "join_channel",
+                    "channel": "paintboard",
+                    "channel_param": ""
+                };
+                ws.send(JSON.stringify(message));
+            };
 
-    function initialPaint() {
-        $.get("/paintBoard/board", function (resp) {
-            resp.split('\n').map(function (colorStr, x) {
-                colorStr.split("|").map(function (color, y) {
-                    update(y, x, color);
-                });
-            });
-        });
-    }
-
-    var ws = null;
-    function connectWs() {
-        try {
-            ws = new WebSocket('${wsurl}/paintBoard/ws');
-        } catch (e) {
-            // alert("无法连接追踪服务器");
-            return;
+            ws.onmessage = function (event) {
+                var data = JSON.parse(event.data);
+                if (data.type === "paintboard_update") {
+                    if (data.id == 0) {
+                        update(data.y, data.x, data.color);
+                    }
+                } else if (data.type === "refresh") {
+                    if (data.id == 0) {
+                        initialPaint(0)
+                    }
+                }
+                else if (data.type === "result") {
+                    initialPaint(0)
+                }
+            };
         }
 
-        ws.onopen = function () {
-            var message = {
-                "type": "join_channel",
-                "channel": "paintboard",
-                "channel_param": ""
-            };
-            ws.send(JSON.stringify(message));
-        };
-
-        ws.onmessage = function (event) {
-            var data = JSON.parse(event.data);
-            if (data.type === "paintboard_update") {
-                update(data.y, data.x, data.color);
-            } else {
-                initialPaint()
-            }
-        };
-    }
-
-    connectWs();
-    if ($.AMUI.utils.cookie.get('username')) {
-        $('#username').text($.AMUI.utils.cookie.get('username'));
-        $('#login-button').hide();
-    } else {
-        $('#user-dropdown').hide();
-    }
-</script>
+        connectWs();
+        if ($.AMUI.utils.cookie.get('username')) {
+            $('#username').text($.AMUI.utils.cookie.get('username'));
+            $('#login-button').hide();
+        } else {
+            $('#user-dropdown').hide();
+        }
+    </script>
 
 
 </body>

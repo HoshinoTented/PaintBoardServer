@@ -1,7 +1,5 @@
 package org.hoshino9.luogu.paintboard.server
 
-import com.google.gson.Gson
-import com.google.gson.JsonElement
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.features.*
@@ -15,9 +13,6 @@ import io.ktor.server.netty.*
 import io.ktor.sessions.*
 import io.ktor.util.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.litote.kmongo.Id
 import org.litote.kmongo.coroutine.CoroutineDatabase
@@ -63,7 +58,7 @@ fun connectMongoDB() {
     println("Connected to MongoDB server: $host:$port/$db")
 }
 
-suspend fun onPaint(req: PaintRequest, id: Int) {
+suspend fun onPaint(id: Int) {
     val str = "{\"type\":\"paintboard_update\",\"id\":$id}"
     sessions.forEach {
         try {
@@ -104,10 +99,7 @@ fun main() {
             }
         }
         install(Sessions) {
-            cookie<UserSession>("user_session") {
-                cookie.path = "/"
-                directorySessionStorage(File(".sessions"), cached = true)
-            }
+            cookie<UserSession>("user_session", directorySessionStorage(File(".sessions"), cached = true)) { cookie.path = "/" }
             cookie<RegisterSession>("register_session") {
                 cookie.path = "/"
                 transform(

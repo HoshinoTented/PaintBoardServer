@@ -10,14 +10,10 @@ import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.sessions.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.litote.kmongo.*
-import java.awt.Paint
 import java.awt.image.BufferedImage
 import java.io.File
-import javax.imageio.*
-import java.util.*
+import javax.imageio.ImageIO
 
 class Board() {
     private val data = Array(800) { IntArray(400) }
@@ -25,8 +21,8 @@ class Board() {
     constructor(initImage: BufferedImage?, records: List<PaintRecord>) : this() {
         if (initImage != null) {
             if (initImage.width < 800 || initImage.height < 400) throw Exception("The image is too small")
-            for (x in 0..800 - 1) {
-                for (y in 0..400 - 1) {
+            for (x in 0 until 800) {
+                for (y in 0 until 400) {
                     data[x][y] = initImage.getRGB(x, y) and 0xffffff
                 }
             }
@@ -56,22 +52,22 @@ val stringCache = Array<String?>(boardNum) { null }
 val initImages = Array(boardNum) { id -> tryReadImage("initImage/$id.jpg") }
 
 fun tryReadImage(path: String): BufferedImage? {
-    try {
-        return ImageIO.read(File(path))
+    return try {
+        ImageIO.read(File(path))
     } catch (e: Throwable) {
-        return null
+        null
     }
 }
 
 suspend fun initDB() {
-    for (id in 0..boardNum - 1) {
+    for (id in 0 until boardNum) {
         mongo.getCollection<PaintRecord>("paintboard$id")
             .createIndex("{time:1}")
     }
 }
 
 suspend fun loadAllBoards(time: Long) {
-    for (id in 0..boardNum - 1) {
+    for (id in 0 until boardNum) {
         loadBoard(id, time)
     }
 }
@@ -145,20 +141,16 @@ fun Routing.board() {
                     status = HttpStatusCode.OK
                 )
 
-                launch {
-                    onPaint(req, id)
-                }
+                onPaint(id)
 
-                launch {
-                    mongo.getCollection<PaintRecord>("paintboard$id")
-                        .insertOne(
-                            PaintRecord(
-                                System.currentTimeMillis(),
-                                call.authentication.principal<UserSession>()?.username ?: "not login?",
-                                req.x, req.y, req.color.toInt(16)
-                            )
+                mongo.getCollection<PaintRecord>("paintboard$id")
+                    .insertOne(
+                        PaintRecord(
+                            System.currentTimeMillis(),
+                            call.authentication.principal<UserSession>()?.username ?: "not login?",
+                            req.x, req.y, req.color.toInt(16)
                         )
-                }
+                    )
 
             } catch (e: Throwable) {
                 call.respondText(

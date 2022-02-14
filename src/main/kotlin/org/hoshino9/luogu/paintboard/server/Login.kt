@@ -25,7 +25,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.catchAndRespond(
         call.respondText(
             "{\"status\": 400,\"data\": \"${e.message}\"}",
             contentType = ContentType.Application.Json,
-            status = HttpStatusCode.BadRequest
+            status = HttpStatusCode.OK
         )
     }
 }

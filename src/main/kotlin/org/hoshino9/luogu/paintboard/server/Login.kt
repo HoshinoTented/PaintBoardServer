@@ -3,8 +3,7 @@ package org.hoshino9.luogu.paintboard.server
 import com.aliyun.dm20151123.Client
 import com.aliyun.dm20151123.models.SingleSendMailRequest
 import com.aliyun.teaopenapi.models.Config
-import com.google.gson.Gson
-import com.google.gson.JsonObject
+import com.google.gson.*
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -12,9 +11,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.sessions.*
 import io.ktor.util.pipeline.*
-import org.litote.kmongo.eq
-import org.litote.kmongo.newId
-import org.litote.kmongo.or
+import org.litote.kmongo.*
 
 suspend fun PipelineContext<Unit, ApplicationCall>.catchAndRespond(
     block: suspend PipelineContext<Unit, ApplicationCall>.() -> Unit
@@ -67,7 +64,7 @@ fun Routing.loginPage() {
 
             if (session != null) {
                 call.respondText(
-                    "{\"status\": 200,\"data\": {\"username\":\"${session.username}\"}}",
+                    "{\"status\": 200,\"data\":${Gson().toJson(mapOf(Pair("username", session.username)))}}",
                     contentType = ContentType.Application.Json,
                     status = HttpStatusCode.OK
                 )
@@ -75,7 +72,7 @@ fun Routing.loginPage() {
                 call.sessions.set(UserSession(user._id.toString(), user.username,
                     System.currentTimeMillis() - delay))
                 call.respondText(
-                    "{\"status\": 200,\"data\": {\"username\":\"${user.username}\"}}",
+                    "{\"status\": 200,\"data\": ${Gson().toJson(mapOf(Pair("username", user.username)))}}",
                     contentType = ContentType.Application.Json,
                     status = HttpStatusCode.OK
                 )
@@ -105,7 +102,11 @@ fun Routing.loginPage() {
                 sendCaptcha(email, capt)
                 call.sessions.set(RegisterSession(email, capt, System.currentTimeMillis()))
             }
-            call.respond(HttpStatusCode.OK)
+            call.respondText(
+                "{\"status\": 200}",
+                contentType = ContentType.Application.Json,
+                status = HttpStatusCode.OK
+            )
         }
     }
 
@@ -116,7 +117,7 @@ fun Routing.loginPage() {
             ) ?: throw RequestException("未找到该用户")
 
             call.respondText(
-                "{\"status\": 200,\"data\": {\"username\":\"${user.username}\",\"email\":\"${user.email}\"}}",
+                "{\"status\": 200,\"data\": ${Gson().toJson(mapOf(Pair("username", user.username)))}",
                 contentType = ContentType.Application.Json,
                 status = HttpStatusCode.OK
             )
